@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+.bun/
+
+# Build output (generated types)
+dist/
+*.tsbuildinfo
+
+# Logs / env / OS
+*.log
+.env
+.env.*
+.DS_Store
+
+# Editor
+.idea/
+.vscode/

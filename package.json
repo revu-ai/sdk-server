@@ -1,0 +1,86 @@
+{
+  "name": "@revu-ai/server",
+  "version": "0.1.0",
+  "description": "REVU Server SDK - reports the crawler requests that reach your own web server to REVU. Zero dependencies. Runs on Node, Bun, Deno and edge runtimes.",
+  "author": "Tarek Raafat",
+  "license": "Apache-2.0",
+  "homepage": "https://developers.revu.ai/server/",
+  "bugs": {
+    "url": "https://github.com/revu-ai/sdk-server/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/revu-ai/sdk-server.git"
+  },
+  "keywords": [
+    "revu",
+    "crawler",
+    "bot",
+    "ai-crawler",
+    "server",
+    "middleware",
+    "edge",
+    "analytics"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./node": {
+      "types": "./dist/types/adapters/node.d.ts",
+      "default": "./src/adapters/node.js"
+    },
+    "./fastify": {
+      "types": "./dist/types/adapters/fastify.d.ts",
+      "default": "./src/adapters/fastify.js"
+    },
+    "./fetch": {
+      "types": "./dist/types/adapters/fetch.d.ts",
+      "default": "./src/adapters/fetch.js"
+    },
+    "./bun": {
+      "types": "./dist/types/adapters/bun.d.ts",
+      "default": "./src/adapters/bun.js"
+    },
+    "./deno": {
+      "types": "./dist/types/adapters/deno.d.ts",
+      "default": "./src/adapters/deno.js"
+    },
+    "./cloudflare": {
+      "types": "./dist/types/adapters/cloudflare.d.ts",
+      "default": "./src/adapters/cloudflare.js"
+    },
+    "./next": {
+      "types": "./dist/types/adapters/next.d.ts",
+      "default": "./src/adapters/next.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "dist/types",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "sync-version": "bun scripts/sync-version.js",
+    "types": "tsc -p tsconfig.json",
+    "test": "bun test",
+    "lint": "eslint --no-error-on-unmatched-pattern \"src/**/*.js\" \"test/**/*.js\" \"scripts/**/*.js\"",
+    "format": "prettier --no-error-on-unmatched-pattern --write \"src/**/*.js\" \"test/**/*.js\" \"scripts/**/*.js\"",
+    "format:check": "prettier --no-error-on-unmatched-pattern --check \"src/**/*.js\" \"test/**/*.js\" \"scripts/**/*.js\"",
+    "size": "bun scripts/size.js",
+    "check": "bun run lint && bun run format:check && bun run types && bun test && bun run size",
+    "prepack": "bun run sync-version && bun run types"
+  },
+  "devDependencies": {
+    "eslint": "^10.4.1",
+    "prettier": "^3.8.4",
+    "typescript": "^6.0.3"
+  }
+}
