@@ -1,0 +1,101 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel an in-flight CI run on the same ref when a new commit lands, so a
+# rapid push sequence does not pile up redundant workers.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: lint, format, types, test, size
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          # Pinned (not `latest`) so CI is reproducible and matches the
+          # version the SDK is developed and tested against. Bump deliberately.
+          bun-version: 1.4.2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Format
+        run: bun run format:check
+
+      # Emits the .d.ts files into dist/types, which also proves the JSDoc
+      # type-checks under strict mode.
+      - name: Type check
+        run: bun run types
+
+      - name: Test
+        run: bun test
+
+      # The size budget is the contract with edge and serverless bundles:
+      # cross it and the "lightweight by design" invariant is broken.
+      - name: Size budget
+        run: bun run size
+
+      - name: Smoke test (Bun)
+        run: bun scripts/smoke.js
+
+  # The package promises to run unchanged on Node 20+ and Deno. The smoke
+  # script uses only portable APIs and needs no install (zero runtime
+  # dependencies), so each runtime runs it straight from source.
+  runtimes:
+    name: smoke on ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: node 20
+            runtime: node
+            version: "20"
+          - name: node 22
+            runtime: node
+            version: "22"
+          - name: node 24
+            runtime: node
+            version: "24"
+          - name: deno 2
+            runtime: deno
+            version: v2.x
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: matrix.runtime == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.version }}
+
+      - name: Smoke test (Node)
+        if: matrix.runtime == 'node'
+        run: node scripts/smoke.js
+
+      - name: Setup Deno
+        if: matrix.runtime == 'deno'
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ matrix.version }}
+
+      - name: Smoke test (Deno)
+        if: matrix.runtime == 'deno'
+        run: deno run scripts/smoke.js

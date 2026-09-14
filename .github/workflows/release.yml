@@ -1,0 +1,115 @@
+name: release
+
+# Publish a GitHub Release (for example v0.1.0) to ship the matching
+# `@revu-ai/server@<version>` to npm.
+#
+# Trigger: a published GitHub Release. The release tag must match the
+# version in package.json (release tag `v0.1.0` requires version `0.1.0`).
+# The job fails fast if they disagree.
+#
+# Prerequisites (one-time setup):
+#   - npm "automation" token with publish access to the @revu-ai org,
+#     added to this repo as the `NPM_TOKEN` secret.
+#   - Repository Actions enabled.
+on:
+  release:
+    types: [published]
+
+# `id-token: write` lets npm mint the OIDC token for the provenance
+# attestation. Nothing else needs write access.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: verify, publish to npm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          # Pinned so the published package is verified with the same
+          # toolchain CI used. Keep in sync with ci.yml.
+          bun-version: 1.4.2
+
+      # Node 20+ is required for `npm publish --provenance`. Bun handles
+      # everything else, npm is only used for the publish itself.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # A tag of v0.1.0 and a package.json version of 0.1.0 is the only
+      # valid pairing. Anything else means the wrong commit was tagged.
+      - name: Verify tag matches package version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg=$(node -p "require('./package.json').version")
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::Release tag v$tag does not match @revu-ai/server version $pkg"
+            exit 1
+          fi
+          echo "Tag and package version match: $pkg"
+
+      # Re-run every CI gate against the exact tagged tree: what we publish
+      # is what we tested. test/version.test.js also fails here if
+      # src/version.js drifted from package.json.
+      - name: Lint
+        run: bun run lint
+
+      - name: Format
+        run: bun run format:check
+
+      - name: Test
+        run: bun test
+
+      - name: Size budget
+        run: bun run size
+
+      - name: Smoke test
+        run: bun scripts/smoke.js
+
+      # Generate the .d.ts files the published `exports` point at. The
+      # publish step uses `--ignore-scripts`, so `prepack` does not run and
+      # these verified files are what ships.
+      - name: Generate types
+        run: rm -rf dist && bun run types
+
+      # Fail before publishing if the tarball is missing the source or the
+      # generated types. `--ignore-scripts` keeps `prepack` from running
+      # (the types were generated above) and from printing into the JSON.
+      - name: Verify package contents
+        run: |
+          npm pack --dry-run --json --ignore-scripts > pack.json
+          node -e '
+            const files = require("./pack.json")[0].files.map((f) => f.path);
+            const need = ["src/index.js", "dist/types/index.d.ts", "README.md", "LICENSE"];
+            const missing = need.filter((f) => !files.includes(f));
+            if (missing.length) { console.error("::error::missing from tarball: " + missing); process.exit(1); }
+            console.log(files.length + " files in tarball");
+          '
+
+      # `--access public` is required for the first publish of a scoped
+      # package. `--provenance` attaches a signed statement linking the
+      # package to this workflow run and commit. npm only accepts provenance
+      # from a public source repository, so it is added only when this
+      # repository is public at publish time.
+      - name: Publish @revu-ai/server
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          REPO_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          if [ "$REPO_PRIVATE" = "true" ]; then
+            echo "Repository is private: publishing without provenance."
+            npm publish --access public --ignore-scripts
+          else
+            npm publish --provenance --access public --ignore-scripts
+          fi
