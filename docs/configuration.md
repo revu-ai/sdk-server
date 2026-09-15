@@ -24,6 +24,7 @@ const revu = createRevuServer({
 | `ipHeader` | none | Single-value client IP header set by your trusted edge (`cf-connecting-ip`, `x-real-ip`, ...). Used only when `trustProxy` is on. When set, it replaces `X-Forwarded-For`: a request without it falls back to the socket address. |
 | `queryAllowlist` | `[]` | Query parameters kept on the reported path. Everything else is stripped. |
 | `ignorePaths` | `[]` | Extra paths never reported: prefixes (`"/admin"`) or `RegExp`. Added to the built-in ignores. |
+| `shouldReport` | none | Your own last check, `(request) => boolean`, for rules the path cannot express (a header, a host, the client address). It runs only for hits that pass every built-in filter and `ignorePaths`, and gets the same request `track()` got. `false` drops the hit. Keep it synchronous. A check that throws drops the hit. |
 | `flushIntervalMs` | `5000` | Send cadence. `0` turns the timer off. |
 | `flushAt` | `20` | Queue length that triggers an early send. |
 | `minSendIntervalMs` | `1000` | Shortest gap between two sends. Hits that arrive within it go out together, so a burst becomes one request. A hit after a quiet interval is sent at once. `0` never waits. The exit flush and `shutdown()` never wait. |

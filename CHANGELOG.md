@@ -4,6 +4,13 @@ All notable changes to `@revu-ai/server` are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - Unreleased
+
+### Added
+
+- **`withRevuRoutes(reporter, routes)`** in `@revu-ai/server/bun` reports the requests `Bun.serve` answers from its `routes` table, which never reach `fetch`. Handler functions and each method of a per-method route are wrapped. Static `Response` and `Bun.file` routes are served through a handler that returns a copy, so they are reported, but Bun no longer answers them with `304 Not Modified`. HTML imports and `false` routes pass through untouched. Keep wrapping `fetch` with `withRevu` for the paths no route matches.
+- **`shouldReport`** option: your own synchronous last check, `(request) => boolean`, run only for hits that pass every built-in filter and `ignorePaths`. `false` drops the hit, and so does a check that throws. Use it for rules the path cannot express, such as skipping requests that bypassed your CDN.
+
 ## [0.1.0] - 2026-09-15
 
 First release. Server-side crawler capture: the crawler requests that reach your own web server, including crawlers that never run JavaScript, are reported to REVU.

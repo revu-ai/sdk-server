@@ -12,7 +12,7 @@ const revu = createRevuServer({ serverKey: process.env.REVU_SERVER_KEY });
 app.use(revuMiddleware(revu)); // Express, Connect or node:http
 ```
 
-Zero runtime dependencies. Node 20+, Bun, Deno, Cloudflare Workers and Next.js middleware. Core: 12.65 kB minified, 5.33 kB gzipped.
+Zero runtime dependencies. Node 20+, Bun, Deno, Cloudflare Workers and Next.js middleware. Core: 12.76 kB minified, 5.36 kB gzipped.
 
 Documentation: [developers.revu.ai/server](https://developers.revu.ai/server/)
 
@@ -116,16 +116,25 @@ Middleware runs before the page renders, so the final status is only known when 
 
 ### Bun
 
+Wrap both `routes` and `fetch`. Bun answers a path that matches `routes` without calling `fetch`, so `withRevu` alone reports only the paths no route matches.
+
 ```js
 import { createRevuServer } from "@revu-ai/server";
-import { withRevu } from "@revu-ai/server/bun";
+import { withRevu, withRevuRoutes } from "@revu-ai/server/bun";
 
 const revu = createRevuServer({ serverKey: Bun.env.REVU_SERVER_KEY });
 
 Bun.serve({
-  fetch: withRevu(revu, (request, server) => new Response("hello")),
+  routes: withRevuRoutes(revu, {
+    "/": renderHome, // your handlers
+    "/pricing": { GET: renderPricing },
+    "/robots.txt": Bun.file("public/robots.txt"),
+  }),
+  fetch: withRevu(revu, handleNotFound), // paths no route matches
 });
 ```
+
+`withRevuRoutes` wraps handler functions and each method of a per-method route. Static `Response` and `Bun.file` routes are served through a handler that returns a copy, so crawler reads of them are reported, but Bun no longer answers them with `304 Not Modified`. HTML imports and `false` routes pass through untouched and are not reported. An app with only `fetch` needs only `withRevu`.
 
 ### Deno
 
@@ -209,6 +218,7 @@ Serverless functions without `waitUntil` (AWS Lambda style) are frozen once they
 | `ipHeader` | none | Single-value client IP header set by your trusted edge (`cf-connecting-ip`, `x-real-ip`, ...). Used only when `trustProxy` is on. When set, it replaces `X-Forwarded-For`: a request without it falls back to the socket address. |
 | `queryAllowlist` | `[]` | Query parameters kept on the reported path. Everything else is stripped. |
 | `ignorePaths` | `[]` | Extra paths never reported: prefixes (`"/admin"`) or `RegExp`. Added to the built-in ignores. |
+| `shouldReport` | none | Your own last check, `(request) => boolean`, for rules the path cannot express (a header, a host, the client address). It runs only for hits that pass every built-in filter and `ignorePaths`, and gets the same request `track()` got. `false` drops the hit. Keep it synchronous. A check that throws drops the hit. |
 | `flushIntervalMs` | `5000` | Send cadence. `0` turns the timer off. |
 | `flushAt` | `20` | Queue length that triggers an early send. |
 | `minSendIntervalMs` | `1000` | Shortest gap between two sends. Hits that arrive within it go out together, so a burst becomes one request. A hit after a quiet interval is sent at once. `0` never waits. The exit flush and `shutdown()` never wait. |
@@ -453,8 +463,8 @@ Each entry point bundled on its own and minified, as an edge bundle would includ
 
 | Entry | Minified | Gzipped | Budget (min / gzip) |
 | --- | --- | --- | --- |
-| `@revu-ai/server` (core) | 12.65 kB | 5.33 kB | 13 kB / 5.4 kB |
-| `/cloudflare` (includes the core) | 13.45 kB | 5.58 kB | 13.5 kB / 5.6 kB |
+| `@revu-ai/server` (core) | 12.76 kB | 5.36 kB | 13.5 kB / 5.6 kB |
+| `/cloudflare` (includes the core) | 13.56 kB | 5.60 kB | 14 kB / 5.8 kB |
 | `/node`, `/fastify`, `/fetch`, `/bun`, `/deno`, `/next` | 0.5 to 1.2 kB | 0.35 to 0.71 kB | 1.5 kB / 0.8 kB each |
 
 `bun run size` enforces the budgets.

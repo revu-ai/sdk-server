@@ -39,6 +39,21 @@ Set a hop count that matches the number of proxies you run, or `ipHeader` for th
 
 String values are accepted too (`"true"`, `"false"`, `"2"`), so the setting can be read straight from an environment variable.
 
+## Requests that bypass your edge
+
+With `ipHeader`, the reported address is only as trustworthy as the rule that keeps other traffic away from your origin. A request that reaches the origin directly can carry any value in that header. If your edge proves itself with a secret header (an origin lock), skip the requests that lack it with `shouldReport`, so a request that went around the edge is never reported:
+
+```js
+const revu = createRevuServer({
+  serverKey: process.env.REVU_SERVER_KEY,
+  trustProxy: true,
+  ipHeader: "cf-connecting-ip",
+  shouldReport: (request) => cameThroughEdge(request.headers),
+});
+```
+
+`cameThroughEdge` stands for the check your app already makes, such as comparing the secret header in constant time. `request.headers` is what the adapter passes: a `Headers` object on fetch-style runtimes (Bun, Deno, Workers, Next.js and the fetch adapter) and a plain object with lowercase keys on `node:http`, Express, Connect and Fastify.
+
 ## The reported host
 
 REVU matches each hit to your touchpoint by its host. A reverse proxy often passes its upstream name (`127.0.0.1:3000`, `localhost`) as `Host`, which matches none of your domains, so REVU refuses the hit. With `trustProxy` on, the reported host comes from `X-Forwarded-Host` (its first entry) when present, so the hit carries the host the crawler asked for. Without a trusted proxy, `X-Forwarded-Host` is never read.

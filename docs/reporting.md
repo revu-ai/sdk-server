@@ -43,3 +43,14 @@ const revu = createRevuServer({
 ```
 
 The built-in ignores (`/api`, `/graphql`, `/_next/` and the health endpoints `/health`, `/healthz`, `/livez`, `/readyz`, `/ping`) always apply.
+
+For a rule the path cannot express, such as a staff header, a preview host or a known internal address, add `shouldReport`. It runs last, only for hits that would otherwise be sent, and gets the same request `track()` got. Return `false` to drop the hit:
+
+```js
+const revu = createRevuServer({
+  serverKey: process.env.REVU_SERVER_KEY,
+  shouldReport: (request) => request.remoteAddress !== "10.0.0.5", // your own monitor
+});
+```
+
+Keep it synchronous and cheap, since it runs on the request path. A check that throws drops the hit. For skipping requests that bypassed your CDN, see [Requests that bypass your edge](./client-ip.md#requests-that-bypass-your-edge).

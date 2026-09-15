@@ -82,18 +82,32 @@ REVU counts a hit without a status as coverage, so a page that passes through mi
 
 ## Bun
 
+Wrap both `routes` and `fetch`. Bun answers a path that matches `routes` without calling `fetch`, so `withRevu` alone reports only the paths no route matches, which is usually just your 404s.
+
 ```js
 import { createRevuServer } from "@revu-ai/server";
-import { withRevu } from "@revu-ai/server/bun";
+import { withRevu, withRevuRoutes } from "@revu-ai/server/bun";
 
 const revu = createRevuServer({ serverKey: Bun.env.REVU_SERVER_KEY });
 
 Bun.serve({
-  fetch: withRevu(revu, (request, server) => new Response("hello")),
+  routes: withRevuRoutes(revu, {
+    "/": renderHome, // your handlers
+    "/pricing": { GET: renderPricing },
+    "/about": aboutPage, // a static Response
+    "/robots.txt": Bun.file("public/robots.txt"),
+  }),
+  fetch: withRevu(revu, handleNotFound), // paths no route matches
 });
 ```
 
-The client address comes from `server.requestIP()`.
+`withRevuRoutes` returns a new routes table with the same paths:
+
+- **Handler functions** are wrapped, and so is each method of a per-method route (`{ GET, POST }`).
+- **Static `Response` and `Bun.file` routes** are served through a handler that returns a copy, so crawler reads of static pages and of files such as `robots.txt` are reported. Bun serves these routes natively with an ETag or `Last-Modified` and answers repeat requests with `304 Not Modified`. Once wrapped, they always send the full body.
+- **HTML imports and `false` routes** pass through untouched and are not reported. Bun bundles HTML imports itself, and a `false` route falls through to `fetch`, which reports it.
+
+An app with only `fetch` needs only `withRevu`. The client address comes from `server.requestIP()`.
 
 ## Deno
 
