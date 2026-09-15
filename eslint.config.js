@@ -36,6 +36,7 @@ const portableGlobals = {
   Headers: "readonly",
   Request: "readonly",
   Response: "readonly",
+  Blob: "readonly",
   AbortController: "readonly",
   TextEncoder: "readonly",
   Promise: "readonly",
