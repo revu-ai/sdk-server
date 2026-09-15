@@ -48,6 +48,7 @@ export const DEFAULTS = Object.freeze({
  * @property {string | null} ipHeader Lowercased header name, or `null`.
  * @property {Set<string>} queryAllowlist
  * @property {Array<string | RegExp>} ignorePaths
+ * @property {((request: import("./types.js").RequestInfo) => boolean) | null} shouldReport
  * @property {number} flushIntervalMs
  * @property {number} flushAt
  * @property {number} minSendIntervalMs
@@ -144,6 +145,7 @@ export function resolveConfig(options) {
       ignorePaths: Array.isArray(o.ignorePaths)
         ? o.ignorePaths.filter((p) => typeof p === "string" || p instanceof RegExp)
         : [],
+      shouldReport: typeof o.shouldReport === "function" ? o.shouldReport : null,
       flushIntervalMs: num(o.flushIntervalMs, DEFAULTS.flushIntervalMs, 0),
       flushAt: num(o.flushAt, DEFAULTS.flushAt, 1),
       minSendIntervalMs: num(o.minSendIntervalMs, DEFAULTS.minSendIntervalMs, 0),

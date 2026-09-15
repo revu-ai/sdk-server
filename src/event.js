@@ -144,6 +144,9 @@ export function toCrawlEvent(request, config) {
 
   const userAgent = getHeader(request.headers, "user-agent") ?? "";
   if (!looksAutomated(userAgent)) return null;
+  // Last, so the caller's check only sees hits that would be sent. A throw
+  // reaches the reporter's guard, which drops the hit.
+  if (config.shouldReport?.(request) === false) return null;
 
   const query = filterQuery(target.query, config.queryAllowlist);
   const host =

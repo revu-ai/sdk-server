@@ -9,14 +9,14 @@
 
 /** Budgets in bytes, per entry: minified and gzipped. */
 const BUDGETS = {
-  "src/index.js": { min: 13_000, gzip: 5_400 },
+  "src/index.js": { min: 13_500, gzip: 5_600 },
   "src/adapters/node.js": { min: 1_500, gzip: 800 },
   "src/adapters/fastify.js": { min: 1_500, gzip: 800 },
   "src/adapters/fetch.js": { min: 1_500, gzip: 800 },
   "src/adapters/bun.js": { min: 1_500, gzip: 800 },
   "src/adapters/deno.js": { min: 1_500, gzip: 800 },
   // Includes the core: the Workers adapter creates its own reporter.
-  "src/adapters/cloudflare.js": { min: 13_500, gzip: 5_600 },
+  "src/adapters/cloudflare.js": { min: 14_000, gzip: 5_800 },
   "src/adapters/next.js": { min: 1_500, gzip: 800 },
 };
 

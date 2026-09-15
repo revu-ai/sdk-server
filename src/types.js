@@ -43,6 +43,14 @@
  *   expressions tested against the path. Added to the built-in ignores
  *   (`/api`, `/graphql`, `/_next/` and the health endpoints `/health`,
  *   `/healthz`, `/livez`, `/readyz`, `/ping`).
+ * @property {(request: RequestInfo) => boolean} [shouldReport]
+ *   Your own last check, for rules the path cannot express (a header, a host
+ *   or the client address). It runs only for hits that pass every built-in
+ *   filter and `ignorePaths`, and receives the same {@link RequestInfo} as
+ *   `track()`. Return `false` to drop the hit. Any other value keeps it. Keep
+ *   it synchronous and fast: it runs on the request path, and a returned
+ *   promise counts as keep. If it throws, the hit is dropped (logged with
+ *   `debug`). A value that is not a function is ignored.
  * @property {number} [flushIntervalMs=5000]
  *   How often queued hits are sent. `0` disables the timer (edge adapters
  *   flush after each response instead).

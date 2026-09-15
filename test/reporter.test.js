@@ -82,6 +82,62 @@ describe("track", () => {
   });
 });
 
+describe("shouldReport", () => {
+  test("false drops a hit, any other value keeps it", () => {
+    const { revu } = setup({ shouldReport: (/** @type {any} */ r) => r.url !== "/private" });
+    expect(revu.track(botRequest({ url: "/private" }))).toBe(false);
+    expect(revu.track(botRequest())).toBe(true);
+    expect(setup({ shouldReport: () => undefined }).revu.track(botRequest())).toBe(true);
+  });
+
+  test("runs only for hits that pass the built-in filters and ignorePaths", () => {
+    /** @type {string[]} */
+    const seen = [];
+    const { revu } = setup({
+      ignorePaths: ["/admin"],
+      shouldReport: (/** @type {any} */ r) => seen.push(r.url) > 0,
+    });
+    revu.track(botRequest({ headers: { "user-agent": BROWSER_UA } }));
+    revu.track(botRequest({ url: "/logo.svg" }));
+    revu.track(botRequest({ url: "/admin/users" }));
+    revu.track(botRequest({ url: "/pricing" }));
+    expect(seen).toEqual(["/pricing"]);
+  });
+
+  test("receives the request exactly as track() got it", () => {
+    const request = botRequest();
+    /** @type {unknown} */
+    let got;
+    setup({ shouldReport: (/** @type {unknown} */ r) => (got = r) !== null }).revu.track(request);
+    expect(got).toBe(request);
+  });
+
+  test("a throwing check drops the hit and never throws out of track()", () => {
+    /** @type {string[]} */
+    const lines = [];
+    const warn = console.warn;
+    console.warn = (...args) => lines.push(args.join(" "));
+    try {
+      const { revu } = setup({
+        debug: true,
+        shouldReport: () => {
+          throw new Error("nope");
+        },
+      });
+      expect(revu.track(botRequest())).toBe(false);
+    } finally {
+      console.warn = warn;
+    }
+    expect(lines.some((line) => line.includes("internal error") && line.includes("nope"))).toBe(
+      true,
+    );
+  });
+
+  test("a value that is not a function is ignored", () => {
+    expect(setup({ shouldReport: "false" }).revu.track(botRequest())).toBe(true);
+  });
+});
+
 describe("flush", () => {
   test("posts the contract body with the server key", async () => {
     const { revu, fetch } = setup();
