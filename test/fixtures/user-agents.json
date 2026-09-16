@@ -1,0 +1,599 @@
+{
+  "description": "Shared user agent fixture. Every entry carries the verdict expected on both sides of server capture: how the REVU API classifies the visitor, and whether the Server SDK reports the request at all. Both sides test against this file, so their two rules cannot drift apart.",
+  "rules": {
+    "api": "The class the REVU API derives from the user agent: human, bot or ai_agent. It decides what is stored and what a report counts. An unrecognized user agent is human, so a missed match stays in the net-human number rather than disappearing.",
+    "sdk": "What the Server SDK does with the request: send it to REVU, or skip it. The pre-filter is deliberately generous, since the API classifies every hit again.",
+    "invariant": "Every user agent the API counts as non-human must be sent, or the hit is lost. Nothing sent should be classified human, or the send was wasted and shows as a refusal. The only entries that are human and skipped are the health probes, which neither side treats as visitors.",
+    "name": "The agent name the API surfaces for the non-human slice, or null for a human user agent and for an automated one that declares no usable name."
+  },
+  "updated": "2026-09-16",
+  "groups": {
+    "browser": "Real browsers, and the empty user agent",
+    "search": "Search engine crawlers",
+    "ai": "AI crawlers and fetchers",
+    "preview": "Link preview and social fetchers",
+    "seo": "SEO and backlink crawlers",
+    "monitor": "Monitoring, audit and headless browsers",
+    "probe": "Health check probes, deliberately never reported",
+    "client": "Scripted HTTP clients: command line tools, language runtimes, API clients",
+    "generic": "Crawlers with no named signature"
+  },
+  "agents": [
+    {
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "group": "browser",
+      "note": "Chrome on macOS",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0",
+      "group": "browser",
+      "note": "Edge on Windows",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0",
+      "group": "browser",
+      "note": "Firefox on Windows",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1",
+      "group": "browser",
+      "note": "Safari on iOS",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0.0.0 Mobile Safari/537.36",
+      "group": "browser",
+      "note": "Samsung Internet",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/AP1A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/460.0.0.0;]",
+      "group": "browser",
+      "note": "In-app browser inside a native app",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "Mozilla/5.0 (Linux; Android 11; CUBOT_X30 Build/RP1A.200720.011) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+      "group": "browser",
+      "note": "Device name ending in bot: still a person",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko",
+      "group": "browser",
+      "note": "Old desktop browser",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "",
+      "group": "browser",
+      "note": "No user agent: never sent, and counted as human by default",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      "group": "search",
+      "note": "Googlebot",
+      "api": "bot",
+      "name": "Googlebot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+      "group": "search",
+      "note": "Bingbot",
+      "api": "bot",
+      "name": "Bingbot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.19582 BingPreview/1.0b",
+      "group": "search",
+      "note": "BingPreview: a browser user agent with the token last",
+      "api": "bot",
+      "name": "BingPreview",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; DuckDuckBot/1.1; +http://duckduckgo.com/duckduckbot.html)",
+      "group": "search",
+      "note": "DuckDuckBot",
+      "api": "bot",
+      "name": "DuckDuckBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
+      "group": "search",
+      "note": "YandexBot",
+      "api": "bot",
+      "name": "YandexBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)",
+      "group": "search",
+      "note": "Baidu",
+      "api": "bot",
+      "name": "Baidu",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15 (Applebot/0.1; +http://www.apple.com/go/applebot)",
+      "group": "search",
+      "note": "Applebot: no word boundary before bot",
+      "api": "bot",
+      "name": "Applebot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.173 Mobile Safari/537.36 (compatible; Google-InspectionTool/1.0)",
+      "group": "search",
+      "note": "Search Console inspection",
+      "api": "bot",
+      "name": "Google Inspection Tool",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; GoogleOther)",
+      "group": "search",
+      "note": "GoogleOther",
+      "api": "bot",
+      "name": "GoogleOther",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 AppleWebKit/537.36 (compatible; AdsBot-Google; +http://www.google.com/adsbot.html)",
+      "group": "search",
+      "note": "Ads landing-page checker",
+      "api": "bot",
+      "name": "AdsBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e YisouSpider/5.0 Safari/602.1",
+      "group": "search",
+      "note": "Crawler on a spoofed phone user agent",
+      "api": "bot",
+      "name": "Yisou",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; coccocbot-web/1.0; +http://help.coccoc.com/searchengine)",
+      "group": "search",
+      "note": "Coc Coc",
+      "api": "bot",
+      "name": "Coc Coc",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; GPTBot/1.1; +https://openai.com/gptbot)",
+      "group": "ai",
+      "note": "GPTBot",
+      "api": "ai_agent",
+      "name": "GPTBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)",
+      "group": "ai",
+      "note": "OpenAI Search",
+      "api": "ai_agent",
+      "name": "OpenAI Search",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; ChatGPT-User/1.0; +https://openai.com/bot)",
+      "group": "ai",
+      "note": "User-triggered fetch",
+      "api": "ai_agent",
+      "name": "ChatGPT",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ClaudeBot/1.0; +claudebot@anthropic.com",
+      "group": "ai",
+      "note": "ClaudeBot",
+      "api": "ai_agent",
+      "name": "ClaudeBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; Claude-User/1.0; +Claude-User@anthropic.com)",
+      "group": "ai",
+      "note": "User-triggered fetch",
+      "api": "ai_agent",
+      "name": "ClaudeBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)",
+      "group": "ai",
+      "note": "PerplexityBot",
+      "api": "ai_agent",
+      "name": "PerplexityBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; Google-Extended)",
+      "group": "ai",
+      "note": "AI training token, not the search crawler",
+      "api": "ai_agent",
+      "name": "Google Extended",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (Linux; Android 5.0) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; Bytespider; spider-feedback@bytedance.com)",
+      "group": "ai",
+      "note": "Bytespider",
+      "api": "ai_agent",
+      "name": "Bytespider",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; Amazonbot/0.1; +https://developer.amazon.com/support/amazonbot)",
+      "group": "ai",
+      "note": "Amazonbot",
+      "api": "ai_agent",
+      "name": "Amazonbot",
+      "sdk": "send"
+    },
+    {
+      "ua": "CCBot/2.0 (https://commoncrawl.org/faq/)",
+      "group": "ai",
+      "note": "Common Crawl",
+      "api": "ai_agent",
+      "name": "CCBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)",
+      "group": "ai",
+      "note": "Meta AI",
+      "api": "ai_agent",
+      "name": "Meta AI",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15 (Applebot-Extended/0.1)",
+      "group": "ai",
+      "note": "The AI token wins over the search crawler",
+      "api": "ai_agent",
+      "name": "Applebot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; DuckAssistBot/1.0; +http://duckduckgo.com/duckassistbot.html)",
+      "group": "ai",
+      "note": "DuckAssist",
+      "api": "ai_agent",
+      "name": "DuckAssist",
+      "sdk": "send"
+    },
+    {
+      "ua": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+      "group": "preview",
+      "note": "Link preview",
+      "api": "bot",
+      "name": "Facebook",
+      "sdk": "send"
+    },
+    {
+      "ua": "Twitterbot/1.0",
+      "group": "preview",
+      "note": "Link preview",
+      "api": "bot",
+      "name": "Twitterbot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; LinkedInBot/1.0; +https://www.linkedin.com)",
+      "group": "preview",
+      "note": "Link preview",
+      "api": "bot",
+      "name": "LinkedIn",
+      "sdk": "send"
+    },
+    {
+      "ua": "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
+      "group": "preview",
+      "note": "Link preview",
+      "api": "bot",
+      "name": "Slack",
+      "sdk": "send"
+    },
+    {
+      "ua": "WhatsApp/2.23.20.0",
+      "group": "preview",
+      "note": "Link preview",
+      "api": "bot",
+      "name": "WhatsApp",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)",
+      "group": "preview",
+      "note": "Link preview",
+      "api": "bot",
+      "name": "Discord",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; redditbot/1.0; +http://www.reddit.com/feedback)",
+      "group": "preview",
+      "note": "Link preview",
+      "api": "bot",
+      "name": "Reddit",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
+      "group": "seo",
+      "note": "AhrefsBot",
+      "api": "bot",
+      "name": "AhrefsBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)",
+      "group": "seo",
+      "note": "SemrushBot",
+      "api": "bot",
+      "name": "SemrushBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; MJ12bot/v1.4.8; http://mj12bot.com/)",
+      "group": "seo",
+      "note": "MJ12bot",
+      "api": "bot",
+      "name": "MJ12bot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; DotBot/1.2; +https://opensiteexplorer.org/dotbot; help@moz.com)",
+      "group": "seo",
+      "note": "DotBot",
+      "api": "bot",
+      "name": "DotBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)",
+      "group": "monitor",
+      "note": "Uptime probe",
+      "api": "bot",
+      "name": "UptimeRobot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Pingdom.com_bot_version_1.4_(http://www.pingdom.com/)",
+      "group": "monitor",
+      "note": "Uptime probe",
+      "api": "bot",
+      "name": "Pingdom",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Chrome-Lighthouse",
+      "group": "monitor",
+      "note": "Page audit",
+      "api": "bot",
+      "name": "Lighthouse",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/124.0.0.0 Safari/537.36",
+      "group": "monitor",
+      "note": "Headless browser",
+      "api": "bot",
+      "name": "Headless Chrome",
+      "sdk": "send"
+    },
+    {
+      "ua": "kube-probe/1.29",
+      "group": "probe",
+      "note": "Orchestrator health check: polls constantly, never a crawler",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "ELB-HealthChecker/2.0",
+      "group": "probe",
+      "note": "Load balancer health check",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "GoogleHC/1.0",
+      "group": "probe",
+      "note": "Load balancer health check",
+      "api": "human",
+      "name": null,
+      "sdk": "skip"
+    },
+    {
+      "ua": "curl/8.4.0",
+      "group": "client",
+      "note": "Command-line tool",
+      "api": "bot",
+      "name": "curl",
+      "sdk": "send"
+    },
+    {
+      "ua": "Wget/1.21.4",
+      "group": "client",
+      "note": "Command-line tool",
+      "api": "bot",
+      "name": "Wget",
+      "sdk": "send"
+    },
+    {
+      "ua": "HTTPie/3.2.3",
+      "group": "client",
+      "note": "Command-line tool",
+      "api": "bot",
+      "name": "HTTPie",
+      "sdk": "send"
+    },
+    {
+      "ua": "python-requests/2.31.0",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "Python requests",
+      "sdk": "send"
+    },
+    {
+      "ua": "undici",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "undici",
+      "sdk": "send"
+    },
+    {
+      "ua": "node-fetch/3.3.2",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "node-fetch",
+      "sdk": "send"
+    },
+    {
+      "ua": "Bun/1.4.2",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "Bun",
+      "sdk": "send"
+    },
+    {
+      "ua": "Deno/2.0.0",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "Deno",
+      "sdk": "send"
+    },
+    {
+      "ua": "Ruby",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "Ruby",
+      "sdk": "send"
+    },
+    {
+      "ua": "Dart/3.5 (dart:io)",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "Dart",
+      "sdk": "send"
+    },
+    {
+      "ua": "Go-http-client/2.0",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "Go HTTP",
+      "sdk": "send"
+    },
+    {
+      "ua": "Java/17.0.10",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "Java",
+      "sdk": "send"
+    },
+    {
+      "ua": "okhttp/4.12.0",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "OkHttp",
+      "sdk": "send"
+    },
+    {
+      "ua": "axios/1.7.2",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "axios",
+      "sdk": "send"
+    },
+    {
+      "ua": "GuzzleHttp/7",
+      "group": "client",
+      "note": "Language runtime",
+      "api": "bot",
+      "name": "Guzzle",
+      "sdk": "send"
+    },
+    {
+      "ua": "PostmanRuntime/7.42.0",
+      "group": "client",
+      "note": "API client",
+      "api": "bot",
+      "name": "Postman",
+      "sdk": "send"
+    },
+    {
+      "ua": "ExampleApp/1.2 CFNetwork/1568.100.1 Darwin/24.0.0",
+      "group": "client",
+      "note": "Native app request, not a page view",
+      "api": "bot",
+      "name": "CFNetwork",
+      "sdk": "send"
+    },
+    {
+      "ua": "Scrapy/2.11.0 (+https://scrapy.org)",
+      "group": "client",
+      "note": "Scraping framework",
+      "api": "bot",
+      "name": "Scrapy",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; ExampleBot/1.0; +https://example.com/bot)",
+      "group": "generic",
+      "note": "No signature: caught by the generic rule and named from its own token",
+      "api": "bot",
+      "name": "ExampleBot",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (compatible; Example Site Checker; +https://example.com/about)",
+      "group": "generic",
+      "note": "A crawler that declares no usable name",
+      "api": "bot",
+      "name": null,
+      "sdk": "send"
+    }
+  ]
+}
