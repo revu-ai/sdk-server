@@ -1,6 +1,6 @@
 {
   "name": "@revu-ai/server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "REVU Server SDK - reports the crawler requests that reach your own web server to REVU. Zero dependencies. Runs on Node, Bun, Deno and edge runtimes.",
   "author": "Tarek Raafat",
   "license": "Apache-2.0",

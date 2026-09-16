@@ -463,8 +463,8 @@ Each entry point bundled on its own and minified, as an edge bundle would includ
 
 | Entry | Minified | Gzipped | Budget (min / gzip) |
 | --- | --- | --- | --- |
-| `@revu-ai/server` (core) | 12.76 kB | 5.36 kB | 13.5 kB / 5.6 kB |
-| `/cloudflare` (includes the core) | 13.56 kB | 5.60 kB | 14 kB / 5.8 kB |
+| `@revu-ai/server` (core) | 12.76 kB | 5.36 kB | 13 kB / 5.5 kB |
+| `/cloudflare` (includes the core) | 13.56 kB | 5.60 kB | 13.8 kB / 5.7 kB |
 | `/node`, `/fastify`, `/fetch`, `/bun`, `/deno`, `/next` | 0.5 to 1.2 kB | 0.35 to 0.71 kB | 1.5 kB / 0.8 kB each |
 
 `bun run size` enforces the budgets.

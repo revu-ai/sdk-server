@@ -4,4 +4,4 @@
  * Auto-generated from package.json by scripts/sync-version.js. Do not edit
  * by hand. Bump package.json's "version" field and rerun the script.
  */
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";
