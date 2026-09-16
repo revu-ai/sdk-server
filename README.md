@@ -16,7 +16,7 @@ Zero runtime dependencies. Node 20+, Bun, Deno, Cloudflare Workers and Next.js m
 
 Documentation: [developers.revu.ai/server](https://developers.revu.ai/server/)
 
-> **Status: 0.1.0, the first release.** The REVU API route this package reports to is live. See [REVU API contract](#revu-api-contract).
+> **Status:** the REVU API route this package reports to is live. See [REVU API contract](#revu-api-contract).
 
 ## Contents
 
@@ -410,7 +410,7 @@ Content-Type: application/json
 
 ```json
 {
-  "sdk": { "name": "@revu-ai/server", "version": "0.1.0" },
+  "sdk": { "name": "@revu-ai/server", "version": "0.2.0" },
   "sent_at": "<ISO-8601>",
   "events": [
     {

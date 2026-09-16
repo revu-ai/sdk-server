@@ -2,7 +2,7 @@
 
 `@revu-ai/server` runs inside your own web server and reports the crawler requests that reach it to REVU. It sees what a browser SDK cannot: AI crawlers, SEO tools and link-preview fetchers that download the raw HTML and never run JavaScript, including their reads of `robots.txt`, `llms.txt` and your sitemaps, with the real HTTP status and the real connecting IP.
 
-> **Status:** `0.1.0` is the first release, and the REVU API route it reports to is live.
+> **Status:** the REVU API route this package reports to is live.
 
 ```js
 import { createRevuServer } from "@revu-ai/server";
