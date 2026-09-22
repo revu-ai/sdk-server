@@ -4,6 +4,12 @@ All notable changes to `@revu-ai/server` are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Pre-filter.** Browser user agents that contradict themselves in a way no shipped browser does are now reported: the legacy `Edge/` token beside Chrome 79 or later, an iOS hardware model (such as `iPhone13,2`) in the platform slot, and a Safari `Version/` newer than the iOS carrying it. REVU counts these as bots, so they were missed before.
+
 ## [0.2.0] - 2026-09-16
 
 ### Added

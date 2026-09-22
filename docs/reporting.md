@@ -9,7 +9,7 @@ A request is reported only when all of these hold:
 1. **Method** is GET or HEAD.
 2. **Path** is page-like: an HTML document, or `robots.txt`, `llms.txt`, `llms-full.txt` or a sitemap file (`*sitemap*.xml`, `.xml.gz`). Paths whose last segment has a known asset extension (`.js`, `.css`, `.png`, `.json`, `.pdf`, ...) are skipped, while paths that merely contain a dot (`/user/john.doe`) still count. `/api`, `/graphql`, `/_next/`, health endpoints (`/health`, `/healthz`, `/livez`, `/readyz`, `/ping`) and your `ignorePaths` are skipped.
 3. **Response** is HTML, when the content type is known. Crawler files and redirects (3xx) count whatever their content type.
-4. **User agent looks automated**: not starting with `Mozilla/` (command-line tools and HTTP libraries), or carrying a crawler token (bot, crawler, spider, preview and fetcher names, headless browsers, a `+http` contact URL). Requests without a user agent are not reported, since REVU classifies each hit by it. Health-check probes (`kube-probe`, `ELB-HealthChecker`, `GoogleHC`, `Consul Health Check`, `Envoy/HC`) are never reported.
+4. **User agent looks automated**: not starting with `Mozilla/` (command-line tools and HTTP libraries), or carrying a crawler token (bot, crawler, spider, preview and fetcher names, headless browsers, a `+http` contact URL), or a browser user agent that contradicts itself in a way no shipped browser does (the legacy `Edge/` token beside Chrome 79 or later, an iOS hardware model such as `iPhone13,2` where iOS puts the platform, or a Safari `Version/` newer than the iOS carrying it). Requests without a user agent are not reported, since REVU classifies each hit by it. Health-check probes (`kube-probe`, `ELB-HealthChecker`, `GoogleHC`, `Consul Health Check`, `Envoy/HC`) are never reported.
 
 ## Examples
 
@@ -17,6 +17,7 @@ A request is reported only when all of these hold:
 | --- | --- | --- |
 | `GET /pricing` from `curl/8.7.1`, HTML | yes | a scripted client fetching a page |
 | `GET /pricing` from a crawler with a `+https://...` contact URL | yes | a crawler token in a browser-like user agent |
+| `GET /pricing` from a Safari user agent newer than its iOS | yes | a browser user agent no browser sends |
 | `GET /robots.txt` from a crawler, plain text | yes | crawler files count whatever their content type |
 | `GET /old-page` answered with a `301` | yes | redirects count whatever their content type |
 | `GET /pricing` from a desktop browser | no | ordinary browser traffic |
