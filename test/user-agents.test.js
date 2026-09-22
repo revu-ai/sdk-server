@@ -30,7 +30,7 @@ const agents = fixture.agents;
 
 describe("shared user agent fixture", () => {
   test("carries the whole list, in the documented shape", () => {
-    expect(agents.length).toBe(72);
+    expect(agents.length).toBe(75);
     for (const entry of agents) {
       expect(typeof entry.ua).toBe("string");
       expect(Object.keys(fixture.groups)).toContain(entry.group);

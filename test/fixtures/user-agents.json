@@ -6,7 +6,7 @@
     "invariant": "Every user agent the API counts as non-human must be sent, or the hit is lost. Nothing sent should be classified human, or the send was wasted and shows as a refusal. The only entries that are human and skipped are the health probes, which neither side treats as visitors.",
     "name": "The agent name the API surfaces for the non-human slice, or null for a human user agent and for an automated one that declares no usable name."
   },
-  "updated": "2026-09-16",
+  "updated": "2026-09-22",
   "groups": {
     "browser": "Real browsers, and the empty user agent",
     "search": "Search engine crawlers",
@@ -16,7 +16,8 @@
     "monitor": "Monitoring, audit and headless browsers",
     "probe": "Health check probes, deliberately never reported",
     "client": "Scripted HTTP clients: command line tools, language runtimes, API clients",
-    "generic": "Crawlers with no named signature"
+    "generic": "Crawlers with no named signature",
+    "spoofed": "Browser user agents that contradict themselves: a combination no shipped browser emits, from an automated client that hand-wrote its user agent"
   },
   "agents": [
     {
@@ -593,6 +594,30 @@
       "note": "A crawler that declares no usable name",
       "api": "bot",
       "name": null,
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.60 Safari/537.36 Edge/12.246",
+      "group": "spoofed",
+      "note": "The EdgeHTML Edge/ token beside Chrome 79 or later; Chromium Edge sends Edg/",
+      "api": "bot",
+      "name": "Spoofed UA",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (iPhone13,2; U; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/15E148 Safari/602.1",
+      "group": "spoofed",
+      "note": "An iOS hardware model in the platform slot, where iOS puts only iPhone, iPad or iPod",
+      "api": "bot",
+      "name": "Spoofed UA",
+      "sdk": "send"
+    },
+    {
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "group": "spoofed",
+      "note": "A Safari Version/ major newer than the iOS major carrying it",
+      "api": "bot",
+      "name": "Spoofed UA",
       "sdk": "send"
     }
   ]
