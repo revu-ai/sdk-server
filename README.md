@@ -12,7 +12,7 @@ const revu = createRevuServer({ serverKey: process.env.REVU_SERVER_KEY });
 app.use(revuMiddleware(revu)); // Express, Connect or node:http
 ```
 
-Zero runtime dependencies. Node 20+, Bun, Deno, Cloudflare Workers and Next.js middleware. Core: 12.76 kB minified, 5.36 kB gzipped.
+Zero runtime dependencies. Node 20+, Bun, Deno, Cloudflare Workers and Next.js middleware. Core: 13.07 kB minified, 5.51 kB gzipped.
 
 Documentation: [developers.revu.ai/server](https://developers.revu.ai/server/)
 
@@ -463,9 +463,10 @@ Each entry point bundled on its own and minified, as an edge bundle would includ
 
 | Entry | Minified | Gzipped | Budget (min / gzip) |
 | --- | --- | --- | --- |
-| `@revu-ai/server` (core) | 12.76 kB | 5.36 kB | 13 kB / 5.5 kB |
-| `/cloudflare` (includes the core) | 13.56 kB | 5.60 kB | 13.8 kB / 5.7 kB |
-| `/node`, `/fastify`, `/fetch`, `/bun`, `/deno`, `/next` | 0.5 to 1.2 kB | 0.35 to 0.71 kB | 1.5 kB / 0.8 kB each |
+| `@revu-ai/server` (core) | 13.07 kB | 5.51 kB | 13.3 kB / 5.7 kB |
+| `/cloudflare` (includes the core) | 13.87 kB | 5.76 kB | 14.1 kB / 5.9 kB |
+| `/node` (includes the user-agent check) | 1.53 kB | 0.87 kB | 1.8 kB / 1 kB |
+| `/fastify`, `/fetch`, `/bun`, `/deno`, `/next` | 0.5 to 1.2 kB | 0.35 to 0.60 kB | 1.5 kB / 0.8 kB each |
 
 `bun run size` enforces the budgets.
 
