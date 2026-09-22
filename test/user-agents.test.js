@@ -15,6 +15,11 @@
  *
  * To add or change an entry, ask for it on the API side. The classifier owns
  * the verdicts, and both copies move together.
+ *
+ * The file's path and shape matter outside this repo too. The documentation
+ * site's build reads `test/fixtures/user-agents.json` by that exact path,
+ * expects the top-level `agents` array, and fails when the two copies differ.
+ * Moving or reshaping the file is a change to coordinate, not a tidy-up.
  */
 
 import { describe, expect, test } from "bun:test";
