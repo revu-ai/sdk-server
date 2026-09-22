@@ -62,14 +62,45 @@ const AUTOMATED_TOKENS =
   /(?<!cu)bot|crawl|spider|slurp|scrap|fetch|archiv|preview|externalhit|externalagent|whatsapp|chatgpt|claude|anthropic|perplexity|cohere|mistral|google-|-google|googleother|headless|lighthouse|phantomjs|\+https?:\/\//i;
 
 /**
+ * Does a browser-like user agent contradict itself? True only for
+ * combinations no shipped browser sends, which means a client wrote the
+ * string by hand. Each rule rests on a browser vendor's own convention:
+ *
+ * 1. The legacy `Edge/` token next to `Chrome/79` or later. Chromium-based
+ *    Edge identifies as `Edg/`, `EdgA/` or `EdgiOS/`, and the older engine
+ *    behind `Edge/` shipped beside Chrome 64 at the newest.
+ * 2. An iOS hardware model in the platform slot, as in `(iPhone13,2;`. iOS
+ *    puts only the platform there (`iPhone`, `iPad`, `iPod`).
+ * 3. A Safari `Version/` major newer than the iOS major. The browser cannot
+ *    be newer than the system carrying it. Browsers on iOS that are not
+ *    Safari send no `Version/` token, so they never reach the comparison.
+ *
+ * The REVU API applies the same three rules and counts a match as a bot, so
+ * a match has to be sent or the hit is lost.
+ *
+ * @param {string} ua
+ * @returns {boolean}
+ */
+function contradictsItself(ua) {
+  const chrome = /[\s;(]Chrome\/(\d+)/.exec(ua);
+  if (chrome && Number(chrome[1]) >= 79 && /[\s;(]Edge\/\d/.test(ua)) return true;
+  if (/\((?:iPhone|iPad|iPod)\d+,\d+\s*[;)]/.test(ua)) return true;
+  const ios = /CPU (?:iPhone |iPad )?OS (\d+)[_\d]* like Mac OS X/.exec(ua);
+  const safari = ios && /[\s;(]Version\/(\d+)/.exec(ua);
+  return !!safari && Number(safari[1]) > Number(ios[1]);
+}
+
+/**
  * Does this user agent look automated?
  *
  * True for any user agent that does not start with `Mozilla/` (every
  * mainstream browser does, while scripted HTTP clients such as command-line
- * tools and language HTTP libraries do not), and for browser-like user agents
- * that carry a crawler token. False for an empty user agent (the REVU API
- * classifies each hit by its user agent and rejects a hit without one) and
- * for health-check probes, which poll constantly and are never crawlers.
+ * tools and language HTTP libraries do not), for browser-like user agents
+ * that carry a crawler token, and for browser-like user agents that
+ * contradict themselves (see {@link contradictsItself}). False for an empty
+ * user agent (the REVU API classifies each hit by its user agent and rejects
+ * a hit without one) and for health-check probes, which poll constantly and
+ * are never crawlers.
  *
  * @param {string | null | undefined} userAgent
  * @returns {boolean}
@@ -78,7 +109,7 @@ export function looksAutomated(userAgent) {
   const ua = typeof userAgent === "string" ? userAgent.trim() : "";
   if (!ua || HEALTH_PROBE.test(ua)) return false;
   if (!/^mozilla\//i.test(ua)) return true;
-  return AUTOMATED_TOKENS.test(ua);
+  return AUTOMATED_TOKENS.test(ua) || contradictsItself(ua);
 }
 
 /**

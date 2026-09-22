@@ -61,6 +61,61 @@ describe("looksAutomated", () => {
   });
 });
 
+describe("looksAutomated: browser user agents that contradict themselves", () => {
+  // The same cases the REVU API tests its classifier with, so both sides agree
+  // on every one: the API counts the first group as bots and the second as
+  // people.
+  const spoofed = {
+    "the legacy Edge/ token next to Chrome 79 or later":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.60 Safari/537.36 Edge/12.246",
+    "an iOS hardware model in the platform slot":
+      "Mozilla/5.0 (iPhone13,2; U; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/15E148 Safari/602.1",
+    "Safari newer than the iOS carrying it":
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+  };
+
+  for (const [label, ua] of Object.entries(spoofed)) {
+    test(`sent: ${label}`, () => {
+      expect(looksAutomated(ua)).toBe(true);
+    });
+  }
+
+  const real = {
+    "legacy Edge, which did ship beside Chrome 64":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.17763",
+    "Chromium Edge, which uses Edg/":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.2535.51",
+    "Edge on Android":
+      "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36 EdgA/125.0.2535.51",
+    "an old but consistent iOS Safari":
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+    "a current iOS Safari, majors equal":
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+    "iOS Safari older than its system":
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+    "Chrome on iOS, which sends no Version/ token":
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/144.0.7559.95 Mobile/15E148 Safari/604.1",
+    "Firefox on iOS":
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/133.0 Mobile/15E148 Safari/605.1.15",
+    "iPad, whose platform string omits the word iPhone":
+      "Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
+    "desktop Chrome on macOS":
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+    "desktop Firefox on Windows":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0",
+    "Chrome on Android":
+      "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+    "an in-app webview on iOS":
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 [FBAN/FBIOS;FBAV/450.0.0.0;]",
+  };
+
+  for (const [label, ua] of Object.entries(real)) {
+    test(`not sent: ${label}`, () => {
+      expect(looksAutomated(ua)).toBe(false);
+    });
+  }
+});
+
 describe("isPageRequest", () => {
   test("GET and HEAD pages count, other methods do not", () => {
     expect(isPageRequest({ method: "GET", path: "/" })).toBe(true);
