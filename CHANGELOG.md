@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Pre-filter.** AI crawlers whose names carry no generic crawler word (such as `NotebookLM`, `Gemini-Deep-Research` or `Kimi-User`) are now reported even when their user agent has no `+http` contact URL. REVU counts them as AI agents, so they were missed before.
 
+### Fixed
+
+- **Pre-filter.** Safari 26 on iOS is no longer reported. It freezes the OS version in its user agent, so its `Version/` is newer than the iOS it names, and the rule that treated that as a contradiction is removed. The hardware model rule now checks only the platform slot right after `Mozilla/5.0`, so in-app browsers that append the model later in the user agent (such as Instagram's on iOS) are no longer reported either.
+
 ## [0.3.0] - 2026-09-22
 
 ### Changed
