@@ -31,7 +31,7 @@ A missing or malformed key never throws. The reporter is created disabled and do
 
 ## Your touchpoint's domains
 
-Each key accepts only the hosts of its own environment: the domain set for that environment on the touchpoint, and its subdomains. When domains overlap, the most specific one decides, so `staging.example.com` is staging even when production is `example.com`. The development key also accepts `localhost`. A port is ignored. Hits for any other host are dropped, so a production key refuses `localhost`.
+Each key accepts only the hosts of its own environment: the domain set for that environment on the touchpoint, and its subdomains. When domains overlap, the most specific one decides, so `staging.example.com` is staging even when production is `example.com`. A subdomain with no domain of its own belongs to its parent: with production set to `example.com` and no staging domain, `staging.example.com` and `preview.example.com` are accepted by the production key and counted as production. To keep staging and preview hits out of production, set that environment's domain on the touchpoint and deploy with its key. The development key also accepts `localhost`. A port is ignored. Hits for any other host are dropped, so a production key refuses `localhost`.
 
 ## Attach it
 
