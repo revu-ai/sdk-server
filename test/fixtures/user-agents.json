@@ -6,7 +6,7 @@
     "invariant": "Every user agent the API counts as non-human must be sent, or the hit is lost. Nothing sent should be classified human, or the send was wasted and shows as a refusal. The only entries that are human and skipped are the health probes, which neither side treats as visitors.",
     "name": "The agent name the API surfaces for the non-human slice, or null for a human user agent and for an automated one that declares no usable name."
   },
-  "updated": "2026-09-22",
+  "updated": "2026-10-01",
   "groups": {
     "browser": "Real browsers, and the empty user agent",
     "search": "Search engine crawlers",
@@ -225,7 +225,7 @@
       "group": "ai",
       "note": "User-triggered fetch",
       "api": "ai_agent",
-      "name": "ClaudeBot",
+      "name": "Claude-User",
       "sdk": "send"
     },
     {
