@@ -54,12 +54,14 @@ const HEALTH_PROBE = /kube-probe|ELB-HealthChecker|GoogleHC|Consul Health Check|
 /**
  * User-agent tokens that mark automated clients. Covers the generic
  * bot / crawler / spider family, link-preview fetchers, AI crawler and AI
- * assistant fetchers that do not use the generic words, headless browsers and
- * audit tools, and the `+http://...` contact URL that crawlers embed. The
- * `(?<!cu)` guard keeps one phone model name out of the `bot` match.
+ * assistant fetchers that do not use the generic words (every AI crawler the
+ * REVU API counts as an AI agent is matched, even without a contact URL),
+ * headless browsers and audit tools, and the `+http://...` contact URL that
+ * crawlers embed. The `(?<!cu)` guard keeps one phone model name out of the
+ * `bot` match.
  */
 const AUTOMATED_TOKENS =
-  /(?<!cu)bot|crawl|spider|slurp|scrap|fetch|archiv|preview|externalhit|externalagent|whatsapp|chatgpt|claude|anthropic|perplexity|cohere|mistral|google-|-google|googleother|headless|lighthouse|phantomjs|\+https?:\/\//i;
+  /(?<!cu)bot|crawl|spider|slurp|scrap|fetch|archiv|preview|externalhit|externalagent|whatsapp|chatgpt|claude|anthropic|perplexity|cohere|mistral|google-|-google|googleother|headless|lighthouse|phantomjs|\+https?:\/\/|amazon-|amzn-|amazonbuy|aiwebindex|autorag|awario|bigsur\.ai|cotoyogi|gemini-|googleagent|img2dataset|kimi-|laion|manus-|notebooklm|novaact|panscient|poggio|qodercli|shap-|tabstack|webindexer|webzio|yandexadditional/i;
 
 /**
  * Does a browser-like user agent contradict itself? True only for
