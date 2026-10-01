@@ -71,13 +71,12 @@ const AUTOMATED_TOKENS =
  * 1. The legacy `Edge/` token next to `Chrome/79` or later. Chromium-based
  *    Edge identifies as `Edg/`, `EdgA/` or `EdgiOS/`, and the older engine
  *    behind `Edge/` shipped beside Chrome 64 at the newest.
- * 2. An iOS hardware model in the platform slot, as in `(iPhone13,2;`. iOS
- *    puts only the platform there (`iPhone`, `iPad`, `iPod`).
- * 3. A Safari `Version/` major newer than the iOS major. The browser cannot
- *    be newer than the system carrying it. Browsers on iOS that are not
- *    Safari send no `Version/` token, so they never reach the comparison.
+ * 2. An iOS hardware model in the platform slot, the first parenthesis after
+ *    `Mozilla/5.0`, as in `(iPhone13,2;`. iOS puts only the platform there
+ *    (`iPhone`, `iPad`, `iPod`). In-app browsers that append the model later
+ *    in the string are real browsers, so only that slot is checked.
  *
- * The REVU API applies the same three rules and counts a match as a bot, so
+ * The REVU API applies the same two rules and counts a match as a bot, so
  * a match has to be sent or the hit is lost.
  *
  * @param {string} ua
@@ -86,10 +85,7 @@ const AUTOMATED_TOKENS =
 function contradictsItself(ua) {
   const chrome = /[\s;(]Chrome\/(\d+)/.exec(ua);
   if (chrome && Number(chrome[1]) >= 79 && /[\s;(]Edge\/\d/.test(ua)) return true;
-  if (/\((?:iPhone|iPad|iPod)\d+,\d+\s*[;)]/.test(ua)) return true;
-  const ios = /CPU (?:iPhone |iPad )?OS (\d+)[_\d]* like Mac OS X/.exec(ua);
-  const safari = ios && /[\s;(]Version\/(\d+)/.exec(ua);
-  return !!safari && Number(safari[1]) > Number(ios[1]);
+  return /^Mozilla\/5\.0 \((?:iPhone|iPad|iPod)\d+,\d+\s*[;)]/.test(ua);
 }
 
 /**
