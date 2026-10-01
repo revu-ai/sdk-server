@@ -12,7 +12,7 @@ Content-Type: application/json
 
 ```json
 {
-  "sdk": { "name": "@revu-ai/server", "version": "0.3.0" },
+  "sdk": { "name": "@revu-ai/server", "version": "0.4.0" },
   "sent_at": "<ISO-8601>",
   "events": [
     {
