@@ -25,7 +25,8 @@ Content-Type: application/json
       "status": 200,
       "user_agent": "...",
       "ip": "203.0.113.7",
-      "referer_host": null
+      "referer_host": null,
+      "resource": "page"
     }
   ]
 }
@@ -40,6 +41,7 @@ The event fields are described in [Privacy and data](./privacy.md#the-event).
 - **`host` must belong to the key's environment**: that environment's domain or a subdomain of it, and also `localhost` for a development key. When domains overlap, the most specific one decides (`staging.acme.com` is staging even under `acme.com`). A subdomain with no domain of its own belongs to its parent: with production set to `acme.com` and no staging domain, a hit for `staging.acme.com` or `preview.acme.com` is accepted by the production key and counted as production. To keep staging and preview hits out of production, set that environment's domain and report them with its key. A port is ignored. Hits for any other host are dropped, for example `localhost` sent with a production key.
 - **Hits REVU does not recognize as automated are dropped**, and their IP is not stored. That covers browsers and user agents that match no known crawler, bot or HTTP client.
 - **`ip` is how REVU verifies the crawler**, against its vendor's published addresses or by reverse DNS. The check runs after the response, so a hit from an address the vendor does not use is still accepted and counted in `accepted`, then left out of AI visibility as spoofed. A missing `ip`, an address on a CDN edge network (Cloudflare, Fastly or Akamai), or a crawler whose vendor documents no way to check leaves the hit unverifiable, and it still counts. The IP is cleared after 30 days, and the hit itself is kept.
+- **`resource` is optional**: `page`, the default when absent, or `api` for a read of a data endpoint such as an API or a JSON feed. This package sends `api` only for a hit it reports because of `reportPaths`. REVU counts API reads per crawler apart from page fetches, so they never change page coverage. Any other value is rejected as invalid.
 - **`event_id` is an idempotency key.** A batch sent twice is stored once, so a retry after a timeout is safe.
 - **`sent_at` is optional**: the sender's clock at send time, used to correct event timestamps for clock skew. A timestamp more than 5 minutes ahead is replaced by the time of receipt. A hit more than 7 days old is rejected as invalid.
 

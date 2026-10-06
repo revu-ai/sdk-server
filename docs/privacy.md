@@ -1,6 +1,6 @@
 # Privacy and data
 
-The privacy rules are applied on your server, before anything is queued. What leaves your server is one small event per reported request: eight fields about the request, plus the event type and a random event id.
+The privacy rules are applied on your server, before anything is queued. What leaves your server is one small event per reported request: eight fields about the request, whether it read a page or an API (`resource`), the event type and a random event id.
 
 ## The event
 
@@ -17,11 +17,12 @@ One `$crawl` event per reported request:
   "status": 200,
   "user_agent": "Mozilla/5.0 (compatible; ExampleBot/1.0; +https://example.com/bot)",
   "ip": "203.0.113.7",
-  "referer_host": null
+  "referer_host": null,
+  "resource": "page"
 }
 ```
 
-`event_id` is a random UUID and `timestamp` is the time of the request. `status` is `null` when the adapter cannot see the final status (Next.js middleware that lets the request continue).
+`event_id` is a random UUID and `timestamp` is the time of the request. `status` is `null` when the adapter cannot see the final status (Next.js middleware that lets the request continue). `resource` is `api` for a hit reported only because of [`reportPaths`](./reporting.md#measure-ai-agents-reading-your-api), and `page` otherwise.
 
 ## What is reduced at the source
 

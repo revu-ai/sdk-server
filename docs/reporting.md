@@ -54,7 +54,7 @@ const revu = createRevuServer({
 });
 ```
 
-An agent that polls an endpoint is reported on every request, so expect more hits than from pages alone. Batching and the queue cap are unchanged, see [Delivery and performance](./delivery.md).
+These hits are sent with `resource: "api"`, and REVU counts them per crawler as API reads, apart from page fetches, so they never change your page coverage. A `reportPaths` rule that matches an ordinary HTML page keeps it a page. An agent that polls an endpoint is reported on every request, so expect more hits than from pages alone. Batching and the queue cap are unchanged, see [Delivery and performance](./delivery.md).
 
 ## Skipping your own paths
 
