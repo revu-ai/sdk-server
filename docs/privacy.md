@@ -22,7 +22,7 @@ One `$crawl` event per reported request:
 }
 ```
 
-`event_id` is a random UUID and `timestamp` is the time of the request. `status` is `null` when the adapter cannot see the final status (Next.js middleware that lets the request continue). `resource` is `api` for a hit reported only because of [`reportPaths`](./reporting.md#measure-ai-agents-reading-your-api), and `page` otherwise.
+`event_id` is a random UUID and `timestamp` is the time of the request. `status` is `null` when the adapter cannot see the final status (Next.js middleware that lets the request continue). `resource` is `api` for a hit on a [`reportPaths`](./reporting.md#measure-ai-agents-reading-your-api) path whose response is not known to be HTML, and `page` otherwise.
 
 ## What is reduced at the source
 

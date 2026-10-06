@@ -54,7 +54,7 @@ const revu = createRevuServer({
 });
 ```
 
-These hits are sent with `resource: "api"`, and REVU counts them per crawler as API reads, apart from page fetches, so they never change your page coverage. A `reportPaths` rule that matches an ordinary HTML page keeps it a page. An agent that polls an endpoint is reported on every request, so expect more hits than from pages alone. Batching and the queue cap are unchanged, see [Delivery and performance](./delivery.md).
+These hits are sent with `resource: "api"`, and REVU counts them per crawler as API reads, apart from page fetches, so they never change your page coverage. A matching path whose response is HTML (an API's documentation page, say) is sent as a page instead. When the adapter cannot see the response type (Next.js middleware that lets the request continue), a matching path is sent as an API read, since you listed it as one. An agent that polls an endpoint is reported on every request, so expect more hits than from pages alone. Batching and the queue cap are unchanged, see [Delivery and performance](./delivery.md).
 
 ## Skipping your own paths
 

@@ -12,7 +12,7 @@ const revu = createRevuServer({ serverKey: process.env.REVU_SERVER_KEY });
 app.use(revuMiddleware(revu)); // Express, Connect or node:http
 ```
 
-Zero runtime dependencies. Node 20+, Bun, Deno, Cloudflare Workers and Next.js middleware. Core: 13.35 kB minified, 5.67 kB gzipped.
+Zero runtime dependencies. Node 20+, Bun, Deno, Cloudflare Workers and Next.js middleware. Core: 13.47 kB minified, 5.72 kB gzipped.
 
 Documentation: [developers.revu.ai/server](https://developers.revu.ai/server/)
 
@@ -286,7 +286,7 @@ const revu = createRevuServer({
 });
 ```
 
-A matching path counts whatever its extension or response content type, and the built-in ignores no longer apply to it. Rules 1 and 4 still hold, so people calling your API from a browser are never reported. A `304 Not Modified` answer is reported too, since the agent still checked the resource. These hits are sent with `resource: "api"`, and REVU counts them per crawler as API reads, apart from page fetches, so they never change your page coverage.
+A matching path counts whatever its extension or response content type, and the built-in ignores no longer apply to it. Rules 1 and 4 still hold, so people calling your API from a browser are never reported. A `304 Not Modified` answer is reported too, since the agent still checked the resource. These hits are sent with `resource: "api"`, unless the response is known to be HTML, and REVU counts them per crawler as API reads, apart from page fetches, so they never change your page coverage.
 
 ## What is sent, and what never is
 
@@ -451,7 +451,7 @@ Content-Type: application/json
 - **`host` must belong to the key's environment**: that environment's domain or a subdomain of it, and also `localhost` for a development key. When domains overlap, the most specific one decides (`staging.acme.com` is staging even under `acme.com`). A subdomain with no domain of its own belongs to its parent: with production set to `acme.com` and no staging domain, a hit for `staging.acme.com` or `preview.acme.com` is accepted by the production key and counted as production. To keep staging and preview hits out of production, set that environment's domain and report them with its key. A port is ignored. Hits for any other host are dropped, for example `localhost` sent with a production key.
 - **Hits REVU does not recognize as automated are dropped**, and their IP is not stored. That covers browsers and user agents that match no known crawler, bot or HTTP client.
 - **`ip` is how REVU verifies the crawler**, against its vendor's published addresses or by reverse DNS. The check runs after the response, so a hit from an address the vendor does not use is still accepted and counted in `accepted`, then left out of AI visibility as spoofed. A missing `ip`, an address on a CDN edge network (Cloudflare, Fastly or Akamai), or a crawler whose vendor documents no way to check leaves the hit unverifiable, and it still counts. The IP is cleared after 30 days, and the hit itself is kept.
-- **`resource` is optional**: `page`, the default when absent, or `api` for a read of a data endpoint such as an API or a JSON feed. This package sends `api` only for a hit it reports because of `reportPaths`. REVU counts API reads per crawler apart from page fetches, so they never change page coverage. Any other value is rejected as invalid.
+- **`resource` is optional**: `page`, the default when absent, or `api` for a read of a data endpoint such as an API or a JSON feed. This package sends `api` for a hit whose path matches `reportPaths` and whose response is not known to be HTML. REVU counts API reads per crawler apart from page fetches, so they never change page coverage. Any other value is rejected as invalid.
 - **`event_id` is an idempotency key.** A batch sent twice is stored once.
 - **`sent_at` is optional**: the sender's clock at send time, used to correct event timestamps for clock skew. A timestamp more than 5 minutes ahead is replaced by the time of receipt. A hit more than 7 days old is rejected as invalid.
 
@@ -481,8 +481,8 @@ Each entry point bundled on its own and minified, as an edge bundle would includ
 
 | Entry | Minified | Gzipped | Budget (min / gzip) |
 | --- | --- | --- | --- |
-| `@revu-ai/server` (core) | 13.35 kB | 5.67 kB | 13.6 kB / 5.9 kB |
-| `/cloudflare` (includes the core) | 14.15 kB | 5.92 kB | 14.4 kB / 6.1 kB |
+| `@revu-ai/server` (core) | 13.47 kB | 5.72 kB | 13.6 kB / 5.9 kB |
+| `/cloudflare` (includes the core) | 14.27 kB | 5.96 kB | 14.4 kB / 6.1 kB |
 | `/node` (includes the user-agent check) | 1.61 kB | 0.95 kB | 2.1 kB / 1.2 kB |
 | `/fastify`, `/fetch`, `/bun`, `/deno`, `/next` | 0.5 to 1.2 kB | 0.35 to 0.60 kB | 1.5 kB / 0.8 kB each |
 
