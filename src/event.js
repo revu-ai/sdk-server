@@ -136,11 +136,23 @@ export function toCrawlEvent(request, config) {
   const method = String(request.method || "GET").toUpperCase();
   const target = parseTarget(request.url);
 
-  const page = isPageRequest(
-    { method, path: target.path, contentType: request.contentType, status: request.status },
-    { ignorePaths: config.ignorePaths, reportPaths: config.reportPaths },
-  );
-  if (!page) return null;
+  const filterInput = {
+    method,
+    path: target.path,
+    contentType: request.contentType,
+    status: request.status,
+  };
+  const page = isPageRequest(filterInput, { ignorePaths: config.ignorePaths });
+  // A hit that passes only because of reportPaths is an API read. A
+  // reportPaths rule that matches an ordinary page keeps it a page.
+  const apiRead =
+    !page &&
+    config.reportPaths.length > 0 &&
+    isPageRequest(filterInput, {
+      ignorePaths: config.ignorePaths,
+      reportPaths: config.reportPaths,
+    });
+  if (!page && !apiRead) return null;
 
   const userAgent = getHeader(request.headers, "user-agent") ?? "";
   if (!looksAutomated(userAgent)) return null;
@@ -173,5 +185,6 @@ export function toCrawlEvent(request, config) {
     user_agent: truncate(userAgent, MAX_USER_AGENT),
     ip: resolveClientIp(request, config),
     referer_host: refererHost(getHeader(request.headers, "referer")),
+    resource: apiRead ? "api" : "page",
   };
 }

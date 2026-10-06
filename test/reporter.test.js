@@ -89,8 +89,18 @@ describe("reportPaths", () => {
     expect(revu.track(botRequest({ ...api, headers: { "user-agent": BROWSER_UA } }))).toBe(false);
     expect(revu.track(botRequest(api))).toBe(true);
     await revu.flush();
-    expect(fetch.calls[0]?.body.events[0]).toMatchObject({ path: "/api/v1/feed.json?page=2" });
+    expect(fetch.calls[0]?.body.events[0]).toMatchObject({
+      path: "/api/v1/feed.json?page=2",
+      resource: "api",
+    });
     expect(setup().revu.track(botRequest(api))).toBe(false);
+  });
+
+  test("a reportPaths rule that matches an ordinary page keeps it a page", async () => {
+    const { fetch, revu } = setup({ reportPaths: ["/"] });
+    expect(revu.track(botRequest())).toBe(true);
+    await revu.flush();
+    expect(fetch.calls[0]?.body.events[0]).toMatchObject({ path: "/pricing", resource: "page" });
   });
 
   test("a value that is not an array is ignored", () => {

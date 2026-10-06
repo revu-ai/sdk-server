@@ -135,6 +135,10 @@
  * @property {string} user_agent User agent string (empty when absent).
  * @property {string | null} ip Client IP, or `null` when it cannot be determined.
  * @property {string | null} referer_host Hostname of the `Referer`, never the full URL.
+ * @property {"page" | "api"} resource
+ *   `"api"` for a hit reported only because its path matched `reportPaths`
+ *   (it would not count as a page without it), `"page"` otherwise. REVU
+ *   counts API reads per crawler apart from page fetches.
  */
 
 /**

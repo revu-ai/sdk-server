@@ -56,6 +56,7 @@ describe("toCrawlEvent", () => {
       user_agent: "curl/8.7.1",
       ip: "203.0.113.7",
       referer_host: "ref.example",
+      resource: "page",
     });
     // Nothing from cookies or other headers can leak into the event.
     expect(JSON.stringify(event)).not.toContain("abc");
