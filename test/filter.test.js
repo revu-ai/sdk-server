@@ -199,6 +199,29 @@ describe("isPageRequest", () => {
     expect(isPageRequest({ method: "GET", path: "/pricing" }, options)).toBe(true);
   });
 
+  test("reportPaths count whatever the extension, content type or built-in ignore", () => {
+    const options = { reportPaths: ["/api/", /\.json$/] };
+    const json = "application/json";
+    expect(isPageRequest({ method: "GET", path: "/api/v1", contentType: json }, options)).toBe(
+      true,
+    );
+    expect(isPageRequest({ method: "GET", path: "/feed.json", contentType: json }, options)).toBe(
+      true,
+    );
+    expect(isPageRequest({ method: "HEAD", path: "/api/v1/x", status: 304 }, options)).toBe(true);
+    expect(isPageRequest({ method: "POST", path: "/api/v1", contentType: json }, options)).toBe(
+      false,
+    );
+    expect(isPageRequest({ method: "GET", path: "/graphql" }, options)).toBe(false);
+    expect(isPageRequest({ method: "GET", path: "/app.js" }, options)).toBe(false);
+  });
+
+  test("ignorePaths win over reportPaths", () => {
+    const options = { ignorePaths: ["/api/private"], reportPaths: ["/api/"] };
+    expect(isPageRequest({ method: "GET", path: "/api/private/keys" }, options)).toBe(false);
+    expect(isPageRequest({ method: "GET", path: "/api/public" }, options)).toBe(true);
+  });
+
   test("a known non-HTML content type excludes the response", () => {
     expect(isPageRequest({ method: "GET", path: "/feed", contentType: "application/json" })).toBe(
       false,

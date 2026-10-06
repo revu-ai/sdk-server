@@ -82,6 +82,23 @@ describe("track", () => {
   });
 });
 
+describe("reportPaths", () => {
+  test("reports automated API reads and never a browser's", async () => {
+    const { fetch, revu } = setup({ reportPaths: ["/api/"], queryAllowlist: ["page"] });
+    const api = { url: "/api/v1/feed.json?page=2&key=secret", contentType: "application/json" };
+    expect(revu.track(botRequest({ ...api, headers: { "user-agent": BROWSER_UA } }))).toBe(false);
+    expect(revu.track(botRequest(api))).toBe(true);
+    await revu.flush();
+    expect(fetch.calls[0]?.body.events[0]).toMatchObject({ path: "/api/v1/feed.json?page=2" });
+    expect(setup().revu.track(botRequest(api))).toBe(false);
+  });
+
+  test("a value that is not an array is ignored", () => {
+    const api = { url: "/api/v1", contentType: "application/json" };
+    expect(setup({ reportPaths: "/api/" }).revu.track(botRequest(api))).toBe(false);
+  });
+});
+
 describe("shouldReport", () => {
   test("false drops a hit, any other value keeps it", () => {
     const { revu } = setup({ shouldReport: (/** @type {any} */ r) => r.url !== "/private" });

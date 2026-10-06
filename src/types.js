@@ -43,6 +43,15 @@
  *   expressions tested against the path. Added to the built-in ignores
  *   (`/api`, `/graphql`, `/_next/` and the health endpoints `/health`,
  *   `/healthz`, `/livez`, `/readyz`, `/ping`).
+ * @property {Array<string | RegExp>} [reportPaths=[]]
+ *   Paths reported even though they are not pages, as path prefixes
+ *   (`"/api/"`) or regular expressions tested against the path. Use it to
+ *   see which crawlers and AI agents read your API or data files. A matching
+ *   path counts whatever its extension or response content type, and lifts
+ *   the built-in ignores (`/api`, `/graphql`, ...) for that path. The method
+ *   must still be GET or HEAD and the user agent must still look automated,
+ *   so people calling your API are never reported. `ignorePaths` wins over
+ *   it.
  * @property {(request: RequestInfo) => boolean} [shouldReport]
  *   Your own last check, for rules the path cannot express (a header, a host
  *   or the client address). It runs only for hits that pass every built-in

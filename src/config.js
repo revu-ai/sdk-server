@@ -48,6 +48,7 @@ export const DEFAULTS = Object.freeze({
  * @property {string | null} ipHeader Lowercased header name, or `null`.
  * @property {Set<string>} queryAllowlist
  * @property {Array<string | RegExp>} ignorePaths
+ * @property {Array<string | RegExp>} reportPaths
  * @property {((request: import("./types.js").RequestInfo) => boolean) | null} shouldReport
  * @property {number} flushIntervalMs
  * @property {number} flushAt
@@ -88,6 +89,18 @@ function trustProxyOption(value) {
   if (v === true || v === "true") return true;
   const hops = typeof v === "string" && /^\d+$/.test(v) ? Number(v) : v;
   return num(hops, 0, 1) || false;
+}
+
+/**
+ * Read a path rule list: the prefixes and regular expressions in an array,
+ * anything else dropped.
+ * @param {unknown} value
+ * @returns {Array<string | RegExp>}
+ */
+function pathRules(value) {
+  return Array.isArray(value)
+    ? value.filter((p) => typeof p === "string" || p instanceof RegExp)
+    : [];
 }
 
 /**
@@ -142,9 +155,8 @@ export function resolveConfig(options) {
           ? o.queryAllowlist.filter((k) => typeof k === "string" && k)
           : [],
       ),
-      ignorePaths: Array.isArray(o.ignorePaths)
-        ? o.ignorePaths.filter((p) => typeof p === "string" || p instanceof RegExp)
-        : [],
+      ignorePaths: pathRules(o.ignorePaths),
+      reportPaths: pathRules(o.reportPaths),
       shouldReport: typeof o.shouldReport === "function" ? o.shouldReport : null,
       flushIntervalMs: num(o.flushIntervalMs, DEFAULTS.flushIntervalMs, 0),
       flushAt: num(o.flushAt, DEFAULTS.flushAt, 1),

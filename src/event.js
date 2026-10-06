@@ -138,7 +138,7 @@ export function toCrawlEvent(request, config) {
 
   const page = isPageRequest(
     { method, path: target.path, contentType: request.contentType, status: request.status },
-    { ignorePaths: config.ignorePaths },
+    { ignorePaths: config.ignorePaths, reportPaths: config.reportPaths },
   );
   if (!page) return null;
 

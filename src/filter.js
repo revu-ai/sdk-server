@@ -4,7 +4,8 @@
  *
  * 1. {@link isPageRequest}: a page-like GET or HEAD (an HTML document, or one
  *    of the files crawlers read to learn about a site: `robots.txt`,
- *    `llms.txt`, sitemaps). Assets and API calls are ignored.
+ *    `llms.txt`, sitemaps). Assets and API calls are ignored, unless the
+ *    caller lists their paths in `reportPaths`.
  * 2. {@link looksAutomated}: the user agent looks like a crawler, a fetcher or
  *    a scripted HTTP client rather than a person's browser.
  *
@@ -111,14 +112,13 @@ export function looksAutomated(userAgent) {
 }
 
 /**
- * Is `path` ignored by the built-in rules or the caller's `ignorePaths`?
+ * Does `path` match one of the rules, each a path prefix or a regular expression?
  * @param {string} path Path without query string.
- * @param {ReadonlyArray<string | RegExp>} ignorePaths
+ * @param {ReadonlyArray<string | RegExp>} rules
  * @returns {boolean}
  */
-function isIgnored(path, ignorePaths) {
-  for (const rule of BUILT_IN_IGNORES) if (rule.test(path)) return true;
-  for (const rule of ignorePaths) {
+function matchesAny(path, rules) {
+  for (const rule of rules) {
     if (typeof rule === "string" ? path.startsWith(rule) : rule.test(path)) return true;
   }
   return false;
@@ -129,15 +129,18 @@ function isIgnored(path, ignorePaths) {
  *
  * - The method must be GET or HEAD.
  * - `robots.txt`, `llms.txt`, `llms-full.txt` and sitemap files always count.
+ * - `ignorePaths` never count.
+ * - `reportPaths` always count, whatever their extension or content type, even
+ *   under a built-in ignore. This is how an API is reported.
  * - Built-in ignores (`/api`, `/graphql`, `/_next/`, health endpoints such as
- *   `/healthz`) and `ignorePaths` never count.
+ *   `/healthz`) never count.
  * - A path whose last segment has a known asset extension (`.js`, `.png`, `.json`, ...) never counts.
  * - A redirect (3xx status) counts whatever its content type, since frameworks
  *   often answer redirects with a plain-text body.
  * - Otherwise, when the response content type is known, it must be HTML.
  *
  * @param {{ method?: string | null, path?: string | null, contentType?: string | null, status?: number | null }} request
- * @param {{ ignorePaths?: ReadonlyArray<string | RegExp> }} [options]
+ * @param {{ ignorePaths?: ReadonlyArray<string | RegExp>, reportPaths?: ReadonlyArray<string | RegExp> }} [options]
  * @returns {boolean}
  */
 export function isPageRequest(request, options) {
@@ -148,7 +151,9 @@ export function isPageRequest(request, options) {
   const path = raw.split(/[?#]/, 1)[0] || "/";
 
   if (CRAWLER_FILE.test(path)) return true;
-  if (isIgnored(path, options?.ignorePaths ?? [])) return false;
+  if (matchesAny(path, options?.ignorePaths ?? [])) return false;
+  if (matchesAny(path, options?.reportPaths ?? [])) return true;
+  if (matchesAny(path, BUILT_IN_IGNORES)) return false;
 
   if (ASSET_EXTENSION.test(path.slice(path.lastIndexOf("/") + 1))) return false;
 
