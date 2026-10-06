@@ -12,7 +12,7 @@ const revu = createRevuServer({ serverKey: process.env.REVU_SERVER_KEY });
 app.use(revuMiddleware(revu)); // Express, Connect or node:http
 ```
 
-Zero runtime dependencies. Node 20+, Bun, Deno, Cloudflare Workers and Next.js middleware. Core: 13.16 kB minified, 5.60 kB gzipped.
+Zero runtime dependencies. Node 20+, Bun, Deno, Cloudflare Workers and Next.js middleware. Core: 13.25 kB minified, 5.63 kB gzipped.
 
 Documentation: [developers.revu.ai/server](https://developers.revu.ai/server/)
 
@@ -218,6 +218,7 @@ Serverless functions without `waitUntil` (AWS Lambda style) are frozen once they
 | `ipHeader` | none | Single-value client IP header set by your trusted edge (`cf-connecting-ip`, `x-real-ip`, ...). Used only when `trustProxy` is on. When set, it replaces `X-Forwarded-For`: a request without it falls back to the socket address. |
 | `queryAllowlist` | `[]` | Query parameters kept on the reported path. Everything else is stripped. |
 | `ignorePaths` | `[]` | Extra paths never reported: prefixes (`"/admin"`) or `RegExp`. Added to the built-in ignores. |
+| `reportPaths` | `[]` | Paths reported even though they are not pages, such as an API: prefixes (`"/api/"`) or `RegExp`. They count whatever their extension or content type, and lift the built-in ignores. Still GET and HEAD from automated user agents only. `ignorePaths` wins. |
 | `shouldReport` | none | Your own last check, `(request) => boolean`, for rules the path cannot express (a header, a host, the client address). It runs only for hits that pass every built-in filter and `ignorePaths`, and gets the same request `track()` got. `false` drops the hit. Keep it synchronous. A check that throws drops the hit. |
 | `flushIntervalMs` | `5000` | Send cadence. `0` turns the timer off. |
 | `flushAt` | `20` | Queue length that triggers an early send. |
@@ -267,11 +268,25 @@ With `trustProxy` on, the reported host also comes from `X-Forwarded-Host` (its 
 A request is reported only when all of these hold:
 
 1. **Method** is GET or HEAD.
-2. **Path** is page-like: an HTML document, or `robots.txt`, `llms.txt`, `llms-full.txt` or a sitemap file (`*sitemap*.xml`, `.xml.gz`). Paths whose last segment has a known asset extension (`.js`, `.css`, `.png`, `.json`, `.pdf`, ...) are skipped, while paths that merely contain a dot (`/user/john.doe`) still count. `/api`, `/graphql`, `/_next/`, health endpoints (`/health`, `/healthz`, `/livez`, `/readyz`, `/ping`) and your `ignorePaths` are skipped.
-3. **Response** is HTML, when the content type is known. Crawler files and redirects (3xx) count whatever their content type.
+2. **Path** is page-like: an HTML document, or `robots.txt`, `llms.txt`, `llms-full.txt` or a sitemap file (`*sitemap*.xml`, `.xml.gz`). Paths whose last segment has a known asset extension (`.js`, `.css`, `.png`, `.json`, `.pdf`, ...) are skipped, while paths that merely contain a dot (`/user/john.doe`) still count. `/api`, `/graphql`, `/_next/`, health endpoints (`/health`, `/healthz`, `/livez`, `/readyz`, `/ping`) and your `ignorePaths` are skipped. Paths you list in `reportPaths` count whatever their extension, see [Measure AI agents reading your API](#measure-ai-agents-reading-your-api).
+3. **Response** is HTML, when the content type is known. Crawler files, redirects (3xx) and `reportPaths` count whatever their content type.
 4. **User agent looks automated**: not starting with `Mozilla/` (command-line tools and HTTP libraries), or carrying a crawler token (bot, crawler, spider, preview and fetcher names, the names of AI crawlers that use none of those words, headless browsers, a `+http` contact URL), or a browser user agent that contradicts itself in a way no shipped browser does (the legacy `Edge/` token beside Chrome 79 or later, or an iOS hardware model such as `iPhone13,2` in the platform slot right after `Mozilla/5.0`, where iOS puts only the platform). Requests without a user agent are not reported, since REVU classifies each hit by it. Health-check probes (`kube-probe`, `ELB-HealthChecker`, `GoogleHC`, `Consul Health Check`, `Envoy/HC`) are never reported.
 
 Step 4 is a cheap pre-filter, not the verdict. It is generous on purpose. REVU re-classifies every hit and discards the ones it decides are human. What it guarantees is that ordinary browser traffic is never sent.
+
+### Measure AI agents reading your API
+
+Only pages are reported by default. If you publish an API or data files for AI assistants to read, add their paths to `reportPaths` (prefixes or `RegExp`) to see which crawlers and agents read them:
+
+```js
+const revu = createRevuServer({
+  serverKey: process.env.REVU_SERVER_KEY,
+  reportPaths: ["/api/"],
+  ignorePaths: ["/api/admin"], // ignorePaths wins over reportPaths
+});
+```
+
+A matching path counts whatever its extension or response content type, and the built-in ignores no longer apply to it. Rules 1 and 4 still hold, so people calling your API from a browser are never reported. A `304 Not Modified` answer is reported too, since the agent still checked the resource.
 
 ## What is sent, and what never is
 
@@ -305,7 +320,7 @@ One `$crawl` event per reported request:
 - **Bounded exit.** The flush timer is unreferenced, so it never keeps a process alive. The one exit flush makes a single attempt, so a natural exit waits at most `timeoutMs` (3 s by default) for an unresponsive endpoint.
 - **Bounded memory.** At most `maxQueueSize` hits are held. The oldest is dropped first.
 - **Bounded network.** One request in flight, sends spaced at least `minSendIntervalMs` apart, a `timeoutMs` deadline, one retry, then drop and back off. `429` waits for `Retry-After`, `413` halves the batch size, `401` or `403` stops reporting until restart.
-- **Tiny volume.** Only crawler page hits are sent, in batches of up to 100.
+- **Tiny volume.** Only crawler page hits (and any `reportPaths` you opt in) are sent, in batches of up to 100.
 
 ## Any other language: plain HTTP
 
@@ -463,8 +478,8 @@ Each entry point bundled on its own and minified, as an edge bundle would includ
 
 | Entry | Minified | Gzipped | Budget (min / gzip) |
 | --- | --- | --- | --- |
-| `@revu-ai/server` (core) | 13.16 kB | 5.60 kB | 13.6 kB / 5.9 kB |
-| `/cloudflare` (includes the core) | 13.96 kB | 5.85 kB | 14.4 kB / 6.1 kB |
+| `@revu-ai/server` (core) | 13.25 kB | 5.63 kB | 13.6 kB / 5.9 kB |
+| `/cloudflare` (includes the core) | 14.05 kB | 5.87 kB | 14.4 kB / 6.1 kB |
 | `/node` (includes the user-agent check) | 1.61 kB | 0.95 kB | 2.1 kB / 1.2 kB |
 | `/fastify`, `/fetch`, `/bun`, `/deno`, `/next` | 0.5 to 1.2 kB | 0.35 to 0.60 kB | 1.5 kB / 0.8 kB each |
 

@@ -38,7 +38,7 @@ A pause starts at `backoffMs` (30 s), doubles with each consecutive failure up t
 - **Bounded exit.** The flush timer is unreferenced, so it never keeps a process alive.
 - **Bounded memory.** At most `maxQueueSize` hits (1000) are held. When the queue is full, the oldest hit is dropped first.
 - **Bounded network.** One request in flight, sends spaced at least `minSendIntervalMs` apart, a deadline on every request, at most one retry, then drop and back off.
-- **Tiny volume.** Only crawler page hits are sent, in batches.
+- **Tiny volume.** Only crawler page hits (and any `reportPaths` you opt in) are sent, in batches.
 
 ## Size
 
@@ -46,8 +46,8 @@ Each entry point bundled on its own and minified, as an edge bundle would includ
 
 | Entry | Minified | Gzipped |
 | --- | --- | --- |
-| `@revu-ai/server` (core) | 13.16 kB | 5.60 kB |
-| `/cloudflare` (includes the core) | 13.96 kB | 5.85 kB |
+| `@revu-ai/server` (core) | 13.25 kB | 5.63 kB |
+| `/cloudflare` (includes the core) | 14.05 kB | 5.87 kB |
 | `/node` (includes the user-agent check) | 1.61 kB | 0.95 kB |
 | `/fastify`, `/fetch`, `/bun`, `/deno`, `/next` | 0.5 to 1.2 kB | 0.35 to 0.60 kB |
 

@@ -13,7 +13,7 @@ The reporter is not seeing requests that qualify.
 1. **Confirm the adapter is registered before your routes.** With Express, `app.use(revuMiddleware(revu))` must come before the route handlers, or the requests never reach it. With `Bun.serve`, wrap `routes` with `withRevuRoutes` as well as `fetch` with `withRevu`. Bun answers a matched route without calling `fetch`, so wrapping `fetch` alone reports only unmatched paths, usually just your 404s. See [Bun](./runtimes.md#bun).
 2. **Send a request that qualifies.** Browser visits are never reported. Use a crawler-like client and an HTML page, for example `curl -A "ExampleBot/1.0" http://localhost:3000/`. See [What is reported](./reporting.md).
 3. **Check the response type.** A page answered with a non-HTML content type is skipped, unless it is a redirect or a crawler file (`robots.txt`, `llms.txt`, a sitemap).
-4. **Check `ignorePaths`** and the built-in ignores (`/api`, `/graphql`, `/_next/` and the health endpoints `/health`, `/healthz`, `/livez`, `/readyz`, `/ping`).
+4. **Check `ignorePaths`** and the built-in ignores (`/api`, `/graphql`, `/_next/` and the health endpoints `/health`, `/healthz`, `/livez`, `/readyz`, `/ping`). To report an API path, add it to `reportPaths`.
 5. **Wait for the flush.** Hits are sent every `flushIntervalMs` (5 s by default) or once `flushAt` hits are queued.
 
 ## The reporter is disabled
