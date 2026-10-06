@@ -6,7 +6,7 @@
  * header are never read.
  */
 
-import { isPageRequest, looksAutomated } from "./filter.js";
+import { isHtml, isListedPath, isPageRequest, looksAutomated } from "./filter.js";
 import { resolveClientIp } from "./ip.js";
 import { getHeader, truncate, uuid } from "./utils.js";
 
@@ -142,17 +142,8 @@ export function toCrawlEvent(request, config) {
     contentType: request.contentType,
     status: request.status,
   };
-  const page = isPageRequest(filterInput, { ignorePaths: config.ignorePaths });
-  // A hit that passes only because of reportPaths is an API read. A
-  // reportPaths rule that matches an ordinary page keeps it a page.
-  const apiRead =
-    !page &&
-    config.reportPaths.length > 0 &&
-    isPageRequest(filterInput, {
-      ignorePaths: config.ignorePaths,
-      reportPaths: config.reportPaths,
-    });
-  if (!page && !apiRead) return null;
+  const listed = isListedPath(filterInput, config);
+  if (!listed && !isPageRequest(filterInput, config)) return null;
 
   const userAgent = getHeader(request.headers, "user-agent") ?? "";
   if (!looksAutomated(userAgent)) return null;
@@ -185,6 +176,9 @@ export function toCrawlEvent(request, config) {
     user_agent: truncate(userAgent, MAX_USER_AGENT),
     ip: resolveClientIp(request, config),
     referer_host: refererHost(getHeader(request.headers, "referer")),
-    resource: apiRead ? "api" : "page",
+    // A listed path is an API read unless its response is known to be HTML.
+    // When the adapter cannot see the response (Next.js middleware that lets
+    // the request continue), the caller listing the path decides.
+    resource: listed && !isHtml(request.contentType) ? "api" : "page",
   };
 }

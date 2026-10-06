@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { isPageRequest, looksAutomated } from "../src/filter.js";
+import { isHtml, isListedPath, isPageRequest, looksAutomated } from "../src/filter.js";
 
 describe("looksAutomated", () => {
   const browsers = [
@@ -199,29 +199,6 @@ describe("isPageRequest", () => {
     expect(isPageRequest({ method: "GET", path: "/pricing" }, options)).toBe(true);
   });
 
-  test("reportPaths count whatever the extension, content type or built-in ignore", () => {
-    const options = { reportPaths: ["/api/", /\.json$/] };
-    const json = "application/json";
-    expect(isPageRequest({ method: "GET", path: "/api/v1", contentType: json }, options)).toBe(
-      true,
-    );
-    expect(isPageRequest({ method: "GET", path: "/feed.json", contentType: json }, options)).toBe(
-      true,
-    );
-    expect(isPageRequest({ method: "HEAD", path: "/api/v1/x", status: 304 }, options)).toBe(true);
-    expect(isPageRequest({ method: "POST", path: "/api/v1", contentType: json }, options)).toBe(
-      false,
-    );
-    expect(isPageRequest({ method: "GET", path: "/graphql" }, options)).toBe(false);
-    expect(isPageRequest({ method: "GET", path: "/app.js" }, options)).toBe(false);
-  });
-
-  test("ignorePaths win over reportPaths", () => {
-    const options = { ignorePaths: ["/api/private"], reportPaths: ["/api/"] };
-    expect(isPageRequest({ method: "GET", path: "/api/private/keys" }, options)).toBe(false);
-    expect(isPageRequest({ method: "GET", path: "/api/public" }, options)).toBe(true);
-  });
-
   test("a known non-HTML content type excludes the response", () => {
     expect(isPageRequest({ method: "GET", path: "/feed", contentType: "application/json" })).toBe(
       false,
@@ -362,4 +339,36 @@ describe("looksAutomated: AI crawlers without a generic word or a contact URL", 
       expect(looksAutomated(`Mozilla/5.0 (compatible; ${token}/1.0)`)).toBe(true);
     });
   }
+});
+
+describe("isListedPath", () => {
+  const options = { reportPaths: ["/api/", /\.json$/], ignorePaths: ["/api/private"] };
+
+  test("GET and HEAD on a reportPaths path are listed, whatever the extension", () => {
+    expect(isListedPath({ method: "GET", path: "/api/v1?x=1" }, options)).toBe(true);
+    expect(isListedPath({ method: "HEAD", path: "/feed.json" }, options)).toBe(true);
+    expect(isListedPath({ method: "POST", path: "/api/v1" }, options)).toBe(false);
+    expect(isListedPath({ method: "GET", path: "/pricing" }, options)).toBe(false);
+  });
+
+  test("ignorePaths win, and crawler files are never listed", () => {
+    expect(isListedPath({ method: "GET", path: "/api/private/keys" }, options)).toBe(false);
+    expect(isListedPath({ method: "GET", path: "/robots.txt" }, { reportPaths: ["/"] })).toBe(
+      false,
+    );
+  });
+
+  test("nothing is listed without reportPaths", () => {
+    expect(isListedPath({ method: "GET", path: "/api/v1" }, {})).toBe(false);
+  });
+});
+
+describe("isHtml", () => {
+  test("only a known HTML content type is HTML", () => {
+    expect(isHtml("text/html; charset=utf-8")).toBe(true);
+    expect(isHtml("application/xhtml+xml")).toBe(true);
+    expect(isHtml("application/json")).toBe(false);
+    expect(isHtml(null)).toBe(false);
+    expect(isHtml(undefined)).toBe(false);
+  });
 });

@@ -5,7 +5,7 @@
  * 1. {@link isPageRequest}: a page-like GET or HEAD (an HTML document, or one
  *    of the files crawlers read to learn about a site: `robots.txt`,
  *    `llms.txt`, sitemaps). Assets and API calls are ignored, unless the
- *    caller lists their paths in `reportPaths`.
+ *    caller lists their paths in `reportPaths` ({@link isListedPath}).
  * 2. {@link looksAutomated}: the user agent looks like a crawler, a fetcher or
  *    a scripted HTTP client rather than a person's browser.
  *
@@ -130,8 +130,6 @@ function matchesAny(path, rules) {
  * - The method must be GET or HEAD.
  * - `robots.txt`, `llms.txt`, `llms-full.txt` and sitemap files always count.
  * - `ignorePaths` never count.
- * - `reportPaths` always count, whatever their extension or content type, even
- *   under a built-in ignore. This is how an API is reported.
  * - Built-in ignores (`/api`, `/graphql`, `/_next/`, health endpoints such as
  *   `/healthz`) never count.
  * - A path whose last segment has a known asset extension (`.js`, `.png`, `.json`, ...) never counts.
@@ -140,19 +138,15 @@ function matchesAny(path, rules) {
  * - Otherwise, when the response content type is known, it must be HTML.
  *
  * @param {{ method?: string | null, path?: string | null, contentType?: string | null, status?: number | null }} request
- * @param {{ ignorePaths?: ReadonlyArray<string | RegExp>, reportPaths?: ReadonlyArray<string | RegExp> }} [options]
+ * @param {{ ignorePaths?: ReadonlyArray<string | RegExp> }} [options]
  * @returns {boolean}
  */
 export function isPageRequest(request, options) {
-  const method = String(request.method || "GET").toUpperCase();
-  if (method !== "GET" && method !== "HEAD") return false;
-
-  const raw = typeof request.path === "string" && request.path ? request.path : "/";
-  const path = raw.split(/[?#]/, 1)[0] || "/";
+  const path = readablePath(request);
+  if (path === null) return false;
 
   if (CRAWLER_FILE.test(path)) return true;
   if (matchesAny(path, options?.ignorePaths ?? [])) return false;
-  if (matchesAny(path, options?.reportPaths ?? [])) return true;
   if (matchesAny(path, BUILT_IN_IGNORES)) return false;
 
   if (ASSET_EXTENSION.test(path.slice(path.lastIndexOf("/") + 1))) return false;
@@ -165,4 +159,49 @@ export function isPageRequest(request, options) {
     return HTML_CONTENT_TYPE.test(contentType);
   }
   return true;
+}
+
+/**
+ * Is this a read of a path the caller listed in `reportPaths`? A GET or HEAD
+ * whose path matches `reportPaths` and not `ignorePaths`. Crawler files keep
+ * their own rule (see {@link isPageRequest}), so they are never listed. A
+ * listed path is reported whatever its extension or content type, even under
+ * a built-in ignore.
+ *
+ * @param {{ method?: string | null, path?: string | null }} request
+ * @param {{ ignorePaths?: ReadonlyArray<string | RegExp>, reportPaths?: ReadonlyArray<string | RegExp> }} options
+ * @returns {boolean}
+ */
+export function isListedPath(request, options) {
+  const reportPaths = options.reportPaths ?? [];
+  if (reportPaths.length === 0) return false;
+  const path = readablePath(request);
+  return (
+    path !== null &&
+    !CRAWLER_FILE.test(path) &&
+    matchesAny(path, reportPaths) &&
+    !matchesAny(path, options.ignorePaths ?? [])
+  );
+}
+
+/**
+ * Is the response content type known to be HTML?
+ * @param {string | null | undefined} contentType
+ * @returns {boolean}
+ */
+export function isHtml(contentType) {
+  return typeof contentType === "string" && HTML_CONTENT_TYPE.test(contentType);
+}
+
+/**
+ * The path of a GET or HEAD request, without query string or fragment, or
+ * `null` for any other method.
+ * @param {{ method?: string | null, path?: string | null }} request
+ * @returns {string | null}
+ */
+function readablePath(request) {
+  const method = String(request.method || "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD") return null;
+  const raw = typeof request.path === "string" && request.path ? request.path : "/";
+  return raw.split(/[?#]/, 1)[0] || "/";
 }

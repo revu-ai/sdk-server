@@ -96,11 +96,30 @@ describe("reportPaths", () => {
     expect(setup().revu.track(botRequest(api))).toBe(false);
   });
 
-  test("a reportPaths rule that matches an ordinary page keeps it a page", async () => {
+  test("a listed path is a page only when its response is known to be HTML", async () => {
     const { fetch, revu } = setup({ reportPaths: ["/"] });
-    expect(revu.track(botRequest())).toBe(true);
+    revu.track(botRequest({ url: "/pricing" }));
+    revu.track(botRequest({ url: "/api/docs" }));
+    revu.track(botRequest({ url: "/feed", contentType: "application/json" }));
+    // The Next.js adapter passes no content type when routing continues.
+    revu.track(botRequest({ url: "/v1/rates", status: null, contentType: null }));
+    revu.track(botRequest({ url: "/robots.txt", contentType: "text/plain" }));
     await revu.flush();
-    expect(fetch.calls[0]?.body.events[0]).toMatchObject({ path: "/pricing", resource: "page" });
+    const sent = fetch.calls[0]?.body.events.map((/** @type {any} */ e) => [e.path, e.resource]);
+    expect(sent).toEqual([
+      ["/pricing", "page"],
+      ["/api/docs", "page"],
+      ["/feed", "api"],
+      ["/v1/rates", "api"],
+      ["/robots.txt", "page"],
+    ]);
+  });
+
+  test("hits that do not match reportPaths stay pages", async () => {
+    const { fetch, revu } = setup({ reportPaths: ["/api/"] });
+    revu.track(botRequest({ url: "/pricing", status: null, contentType: null }));
+    await revu.flush();
+    expect(fetch.calls[0]?.body.events[0]).toMatchObject({ resource: "page" });
   });
 
   test("a value that is not an array is ignored", () => {
