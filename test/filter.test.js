@@ -199,6 +199,13 @@ describe("isPageRequest", () => {
     expect(isPageRequest({ method: "GET", path: "/pricing" }, options)).toBe(true);
   });
 
+  test("a path rule with the g flag matches on every request", () => {
+    const options = { ignorePaths: [/^\/admin/g] };
+    expect(isPageRequest({ method: "GET", path: "/admin/a" }, options)).toBe(false);
+    expect(isPageRequest({ method: "GET", path: "/admin/b" }, options)).toBe(false);
+    expect(options.ignorePaths[0]?.lastIndex).toBe(0);
+  });
+
   test("a known non-HTML content type excludes the response", () => {
     expect(isPageRequest({ method: "GET", path: "/feed", contentType: "application/json" })).toBe(
       false,
@@ -356,6 +363,14 @@ describe("isListedPath", () => {
     expect(isListedPath({ method: "GET", path: "/robots.txt" }, { reportPaths: ["/"] })).toBe(
       false,
     );
+  });
+
+  test("a path rule with the g or y flag matches on every request", () => {
+    for (const rule of [/^\/api\//g, /\/api\//y]) {
+      const sticky = { reportPaths: [rule] };
+      expect(isListedPath({ method: "GET", path: "/api/a" }, sticky)).toBe(true);
+      expect(isListedPath({ method: "GET", path: "/api/b" }, sticky)).toBe(true);
+    }
   });
 
   test("nothing is listed without reportPaths", () => {

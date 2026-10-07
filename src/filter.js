@@ -119,7 +119,9 @@ export function looksAutomated(userAgent) {
  */
 function matchesAny(path, rules) {
   for (const rule of rules) {
-    if (typeof rule === "string" ? path.startsWith(rule) : rule.test(path)) return true;
+    // search() always starts at 0, so a rule with the g or y flag cannot carry
+    // lastIndex from one request into the next, as test() would.
+    if (typeof rule === "string" ? path.startsWith(rule) : path.search(rule) !== -1) return true;
   }
   return false;
 }
