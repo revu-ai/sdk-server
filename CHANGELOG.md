@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **`reportPaths`** option: paths reported even though they are not pages, as prefixes (`"/api/"`) or `RegExp`. Use it to see which crawlers and AI agents read your API or data files. A matching path counts whatever its extension or response content type, and lifts the built-in ignores for that path. The method must still be GET or HEAD and the user agent must still look automated. `ignorePaths` wins over it.
 - **`resource`** field on every event: `"api"` for a hit on a `reportPaths` path whose response is not known to be HTML, `"page"` otherwise. REVU counts API reads per crawler apart from page fetches, so they never change page coverage.
 
+### Fixed
+
+- **`ignorePaths`** rules written as a regular expression with the `g` or `y` flag now match on every request. They matched only on alternate requests before.
+
 ## [0.4.0] - 2026-10-01
 
 ### Changed

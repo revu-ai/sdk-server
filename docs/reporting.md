@@ -40,11 +40,11 @@ Only pages are reported by default. If you publish an API or data files for AI a
 ```js
 const revu = createRevuServer({
   serverKey: process.env.REVU_SERVER_KEY,
-  reportPaths: ["/api/", /\.json$/],
+  reportPaths: ["/api/", "/feed.json"],
 });
 ```
 
-Each entry is a path prefix or a regular expression tested against the path. A matching path counts whatever its extension or response content type, and the built-in ignores (`/api`, `/graphql`, ...) no longer apply to it. The other rules still hold: GET and HEAD only, and only user agents that look automated. People calling your API from a browser are never reported. Scripted HTTP clients are, as with pages, and REVU decides which hits are automated. The same fields are sent, with the query stripped unless you allowlist it. A `304 Not Modified` answer to a conditional request is reported too, since the agent still checked the resource. `ignorePaths` wins over `reportPaths`, so a private part of the API can stay out:
+Each entry is a path prefix or a regular expression tested against the path. List only your API and data paths. A broad rule such as `/\.json$/` also matches files like `/manifest.json`, and `"/"` would make ordinary pages count as API reads wherever the response type is unknown. A matching path counts whatever its extension or response content type, and the built-in ignores (`/api`, `/graphql`, ...) no longer apply to it. The other rules still hold: GET and HEAD only, and only user agents that look automated. People calling your API from a browser are never reported. Scripted HTTP clients are, as with pages, and REVU decides which hits are automated. The same fields are sent, with the query stripped unless you allowlist it. A `304 Not Modified` answer to a conditional request is reported too, since the agent still checked the resource. `ignorePaths` wins over `reportPaths`, so a private part of the API can stay out:
 
 ```js
 const revu = createRevuServer({
